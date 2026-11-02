@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<title>gen_menu</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+</head>
+<body>
+<main>
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+    <div>
+      <h1 style="margin-top: 0; margin-bottom: 5px;">Меню</h1>
+      <p class="sub" style="margin-bottom: 0;">Загрузите меню (.xlsx) и работайте с ним.</p>
+    </div>
+    
+    <!-- Контейнер для кнопок -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <!-- НОВАЯ КНОПКА ТЕМЫ -->
+      <button class="btn alt" id="themeToggle" style="margin: 0; padding: 8px 16px; font-size: 14px; width: auto;">🌙 Тёмная</button>
+      
+      <button class="btn alt" id="updateBtn" style="margin: 0; padding: 8px 16px; font-size: 14px; width: auto;">🚀 Что нового?</button>
+      <button class="btn alt" id="helpBtn" style="margin: 0; padding: 8px 16px; font-size: 14px; width: auto;">❓ Справка</button>
+      <button class="btn alt" id="dictBtn" style="margin: 0; padding: 8px 16px; font-size: 14px; width: auto;">📖 Словарь</button>
+    </div>
+  </div>
+  
+  <!-- Модальное окно Словаря -->
+  <div id="dictModal" class="modal-overlay hide">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📖 Словарь переводов</h2>
+        <button class="modal-close" id="closeDict">&times;</button>
+      </div>
+      <p style="margin-bottom: 15px; color: #6b7280;">Все блюда, которые вы переводили или редактировали. Можете изменить перевод прямо здесь — он сохранится навсегда.</p>
+        <div class="dict-search-wrapper">
+          <span class="dict-search-icon">🔍</span>
+          <input type="text" id="dictSearch" placeholder="Поиск по русскому, казахскому или английскому..." autocomplete="off">
+        </div>
+      <div class="modal-body">
+        <table class="dict-table">
+          <thead>
+            <tr>
+              <th>Русский</th>
+              <th>Казахский</th>
+              <th>Английский</th>
+            </tr>
+          </thead>
+          <tbody id="dictBody">
+            <!-- Сюда будут загружаться данные -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Модальное окно Справки -->
+  <div id="helpModal" class="modal-overlay hide">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2>🫖 Справка</h2>
+        <button class="modal-close" id="closeHelp">&times;</button>
+      </div>
+      <div class="modal-body" style="line-height: 1.6;">
+        <p><b>1. Загрузка:</b> Перетащите Excel-файл с недельным меню в зону загрузки.</p>
+        <p><b>2. Перевод:</b> Спустившись в самый низ вы увидите множество кнопок, для испоьзования ИИ переводчика вам нужно настроить API ключ, при его отсутсвии или наличии каких либо проблем обратитесь к разроботчику</p>
+        <p><b>3. Редактирование:</b> Вы можете менять любой текст прямо в карточках блюд.Каждое вами измененное значение сохраняется в локальной памяти вашего браузера, в файл word  или jpeg попадут только те блюда у которых рядом проставлены галочки</p>
+        <p><b>4. Экспорт:</b> Скачивайте готовое меню в Word или JPEG.</p>
+        <p><b>5. Словарь:</b> Все ваши переводы сохраняются в памяти браузера. Нажав на кнопку «Словарь», вы можете редактировать их глобально.</p>
+        <p><b>6. Есть вопросы?:</b> Любые вопросы по проекту разроботчику сайта.</p>
+        <p><b>7. Есть идеи?:</b> Оставьте заявку в моем портфолио! <a target="_blank" rel="noopener noreferrer" class="prtf" href="https://eldarbaltabaev-lab.github.io/E.Baltabayev/"> Перейти->>></a></p>
+      </div>
+    </div>
+  </div>
+
+<div class="card">
+  <label class="lbl" for="file">1. Файл недельного меню</label>
+  <div id="drop-zone" class="drop-zone">
+    <input id="file" type="file" accept=".xlsx,.xlsm">
+    <div class="drop-zone-prompt">
+      <span style="font-size: 24px; display: block; margin-bottom: 8px;">📥</span>
+      Перетащите файл сюда <br> или нажмите, чтобы выбрать
+    </div>
+  </div>
+  <div id="msg" role="status" aria-live="polite"></div>
+</div>
+
+<div id="step2" class="card hide">
+  <label class="lbl" for="weekSel">2. Неделя</label>
+  <select id="weekSel"></select>
+
+  <!-- КАРУСЕЛЬ -->
+  <div class="carousel-wrapper">
+    <button class="carousel-btn" id="prevWeekDay" title="Назад">❮</button>
+    <div id="weekContainer" class="week-container"></div>
+    <button class="carousel-btn" id="nextWeekDay" title="Вперед">❯</button>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="weekDocx">📄 Скачать неделю (.docx ZIP)</button>
+    <button class="btn alt" id="weekJpeg">🖼️ Скачать неделю (.jpeg ZIP)</button>
+    <button class="btn alt" id="translateBtn">🌐 Перевести всё (Google)</button>
+    <button class="btn alt" id="translateAiBtn">🤖 Перевести всё (ИИ)</button>
+    <button class="btn" id="aiKeyBtn" style="margin-top:12px; font-size:13px; padding:8px;">⚙️ Настроить ИИ (API-ключ)</button>
+  </div>
+</div>
+
+<div id="jpegContainer"></div>
+<!-- Модальное окно Что нового -->
+<div id="updateModal" class="modal-overlay hide">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="modal-header" style="background: #fff3e0; border-bottom-color: #ff9800;">
+      <h2 style="color: #e65100;">🚀 Что нового?</h2>
+      <button class="modal-close" id="closeUpdate">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="update-item">
+        <div class="update-icon">🤖</div>
+        <div class="update-text">
+          <h3>Умный переводчик с автопереключением</h3>
+          <p>Теперь, если основная модель ИИ (Gemini) перегружена или выдает ошибку, скрипт автоматически переключится на резервные версии (3.7, 3.6, 3.5 и т.д.). Перевод не остановится, пока не будет выполнен!</p>
+        </div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-icon">📖</div>
+        <div class="update-text">
+          <h3>Глобальный словарь переводов</h3>
+          <p>Все переведенные блюда теперь навсегда сохраняются в памяти браузера. Если блюдо встретится на другой неделе, оно переведется мгновенно и без затрат лимитов ИИ.</p>
+        </div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-icon">🔍</div>
+        <div class="update-text">
+          <h3>Умный поиск в словаре</h3>
+          <p>В словаре появился мгновенный поиск. Вы можете искать блюда по русскому, казахскому или английскому названию, а также редактировать переводы прямо в таблице.</p>
+        </div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-icon">🖼️</div>
+        <div class="update-text">
+          <h3>Улучшенный экспорт в JPEG</h3>
+          <p>Картинки теперь генерируются в точном соответствии с оригинальным бланком: с логотипами по краям, синими рамками и автоматической группировкой по категориям (Сорпа, Салат, Тағам и т.д.).</p>
+        </div>
+      </div>
+
+      <div class="update-item">
+        <div class="update-icon">⚙️</div>
+        <div class="update-text">
+          <h3>Стабильность и исправления</h3>
+          <p>Устранены ошибки дублирования ключей, починено сохранение переводов, добавлены эффекты наведения и исправлено закрытие модальных окон.</p>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 30px; color: #9ca3af; font-size: 13px;">
+        Версия 3.0 • Ноябрь 2026
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- ВАЖНО: Сначала script.js, затем script-translate.js -->
+<script src="script.js"></script>
+<script src="translater.js"></script>
+</body>
+</html>
