@@ -301,16 +301,15 @@ document.getElementById('file').onchange=async e=>{
 
     const sel2=document.getElementById("daySelect");
     sel2.replaceChildren();
-    const firstWeek = window.weeks[0]; // Берем первую неделю для простоты
-    window.cur.week = 0;
-
-    firstWeek.dates.forEach((serial, i) => {
+    window.weeks.forEach((w, weekIndex) => {
+    w.dates.forEach((serial, dayIndex) => {
         if (serial == null) return;
         const o = document.createElement("option");
-        o.value = i;
-        o.textContent = wday(serial) + ", " + fmt(serial, ".");
+        o.value = weekIndex + "_" + dayIndex; // Сохраняем и неделю, и день
+        o.textContent = "Неделя " + w.num + ": " + wday(serial) + ", " + fmt(serial, ".");
         sel2.appendChild(o);
     });
+});
 
     document.getElementById("step2").classList.remove("hide");
     say(f.name+": загружено. Выберите день для правок.");
@@ -324,9 +323,11 @@ function renderCorrection() {
   const listContainer = document.getElementById('correctionList');
   listContainer.innerHTML = '';
   
-  const day = parseInt(document.getElementById('daySelect').value);
-  const w = window.weeks[window.cur.week];
-  if (!w || isNaN(day)) return;
+  const val = document.getElementById('daySelect').value;
+  if (!val) return;
+  const [weekIndex, day] = val.split('_').map(Number);
+  const w = window.weeks[weekIndex];
+  if (!w) return;
 
   const serial = w.dates[day];
   if (serial == null) return;
@@ -393,8 +394,10 @@ function renderCorrection() {
 // Кнопки скачивания
 document.getElementById('downloadWord').onclick = async () => {
   try {
-    const day = parseInt(document.getElementById('daySelect').value);
-    const w = window.weeks[window.cur.week];
+    const val = document.getElementById('daySelect').value;
+    if (!val) return;
+    const [weekIndex, day] = val.split('_').map(Number);
+    const w = window.weeks[weekIndex];
     const dayObj = {w, col: 2 + day, serial: w.dates[day]};
     
     say("Собираю Word...");
@@ -412,8 +415,10 @@ document.getElementById('downloadWord').onclick = async () => {
 
 document.getElementById('downloadJpeg').onclick = async () => {
   try {
-    const day = parseInt(document.getElementById('daySelect').value);
-    const w = window.weeks[window.cur.week];
+    const val = document.getElementById('daySelect').value;
+    if (!val) return;
+    const [weekIndex, day] = val.split('_').map(Number);
+    const w = window.weeks[weekIndex];
     const dayObj = {w, col: 2 + day, serial: w.dates[day]};
     
     say("Собираю JPEG...");
@@ -428,3 +433,26 @@ document.getElementById('downloadJpeg').onclick = async () => {
     saveBlob(zipName, await out.generateAsync({type:"blob"}));
   } catch(e) { say("Ошибка: " + e.message, true); }
 };
+// ===== СМЕНА ТЕМЫ =====
+const themeToggleBtn = document.getElementById('themeToggle');
+const currentTheme = localStorage.getItem('theme') || 'light';
+
+if (currentTheme === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  if (themeToggleBtn) themeToggleBtn.textContent = '☀️ Светлая';
+}
+
+if (themeToggleBtn) {
+  themeToggleBtn.onclick = () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+      themeToggleBtn.textContent = '🌙 Тёмная';
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+      themeToggleBtn.textContent = '☀️ Светлая';
+    }
+  };
+}
