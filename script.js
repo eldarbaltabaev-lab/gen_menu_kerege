@@ -13,7 +13,7 @@ const $=s=>document.querySelector(s);
 
 window.weeks=[]; window.cur={week:0}; window.sel={}; 
 // Загружаем ручные правки из памяти при старте
-window.overrides = JSON.parse(localStorage.getItem('manual_overrides') || '{}');
+window.tempOverrides = {};
 
 const clean=v=>String(v==null?"":v).replace(/\s+/g," ").trim();
 const EP=Date.UTC(1899,11,30);
@@ -110,7 +110,7 @@ function texts(d,it){
     const k = lang + "|" + ruText;
     
     // 1. Проверяем ручные правки
-    if(window.overrides[k]!==undefined) return window.overrides[k];
+    if(window.tempOverrides && window.tempOverrides[k]!==undefined) return window.tempOverrides[k];
 
     // 2. Ищем в глобальной памяти
     if (lang !== 'ru' && ruText && ruText.trim() !== "") {
@@ -170,11 +170,9 @@ function createItemRow(dayObj,day,mealKey,it){
       else e.classList.remove('dup');
     
       // 3. Сохраняем в оперативную память
-      if(v===orig) delete window.overrides[key];
-      else window.overrides[key]=v;
-    
-      // 4. СОХРАНЯЕМ В БРАУЗЕР, чтобы правки не слетали после F5
-      localStorage.setItem('manual_overrides', JSON.stringify(window.overrides));
+      if(v===orig) delete window.tempOverrides[key];
+      else window.tempOverrides[key]=v;
+// Убрали localStorage, теперь это только временно!
     };
     body.appendChild(e);
   };
@@ -287,7 +285,7 @@ function getCategoryGroup(mealKey, label, rawCat) {
     if (l.includes("злаки") || l.includes("каша")) return "Ботқа / Каша / Porridge";
     if (l.includes("яйца") || l.includes("жұмыртқа") || l.includes("омлет")) return "Жұмыртқа / Яйца / Eggs";
     if (l.includes("горячее") || l.includes("гарнир") || l.includes("сосиск")) return "Ыстық тағам / Горячее / Hot dishes";
-    if (l.includes("йогурт") || l.includes("выпечка") || l.includes("тоқаш")) return "Бәліштер / Выпечка / Baking & Dairy";
+    if (l.includes("йогурт") || l.includes("выпечка") || l.includes("тоқаш")) return "Бәліштер және сүт өнімдері/ Выпечка и молочные изделия/ Baking & Dairy products";
   } else {
     // ПРАВИЛА ДЛЯ ОБЕДА И УЖИНА
     if (l.includes("салатные овощи")) return null; // Игнорируем
