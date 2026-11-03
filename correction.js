@@ -320,6 +320,7 @@ document.getElementById('file').onchange=async e=>{
 document.getElementById('daySelect').onchange = renderCorrection;
 
 function renderCorrection() {
+  window.TM.data = JSON.parse(localStorage.getItem('translation_memory') || '{}');
   const listContainer = document.getElementById('correctionList');
   listContainer.innerHTML = '';
   
@@ -456,3 +457,80 @@ if (themeToggleBtn) {
     }
   };
 }
+// ===== ЛОГИКА ПЕРЕВОДА ИИ ДЛЯ КОРРЕКТИРОВКИ =====
+async function aiTranslateBatch(items, target) {
+  const apiKey = localStorage.getItem('gemini_api_key');
+  if (!apiKey) throw new Error('Сначала нажмите «⚙️ Настроить ИИ» на главной странице!');
+  
+  const langName = target === 'kk' ? 'казахский' : 'английский';
+  const prompt = `Переведи названия блюд с русского на ${langName}. 
+Верни результат СТРОГО в формате JSON-объекта, где ключ - это оригинальный русский текст, а значение - перевод.
+Не добавляй лишнего текста, только JSON.
+Исходный список: ${JSON.stringify(items)}`;
+
+  const models = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'];
+
+  for (let i = 0; i < models.length; i++) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${models[i]}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1 } })
+      });
+
+      if (res.status === 429) { await new Promise(r => setTimeout(r, 3000)); continue; }
+      if (!res.ok) continue; 
+      
+      const data = await res.json();
+      let text = data.candidates[0].content.parts[0].text.trim();
+      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+      const m = text.match(/\{[\s\S]*\}/); 
+      if (!m) throw new Error('ИИ вернул не JSON');
+      return JSON.parse(m[0]); 
+    } catch (err) {
+      console.warn(`Ошибка на модели ${models[i]}: ${err.message}`);
+    }
+  }
+  throw new Error('Все модели ИИ недоступны.');
+}
+
+document.getElementById('translateAiBtn').onclick = async function() {
+  const val = document.getElementById('daySelect').value;
+  if (!val) return;
+  
+  const [weekIndex, day] = val.split('_').map(Number);
+  const w = window.weeks[weekIndex];
+  const dayObj = {w, col: 2 + day, serial: w.dates[day]};
+
+  // Собираем все уникальные русские слова из этого дня
+  const ruTexts = [];
+  MEALS.forEach(meal => {
+    const list = w.blocks[meal.k] || [];
+    list.forEach(it => {
+      const ru = it.isCustom ? (it.ru||"") : get(dayObj.w, "ru", it.r, dayObj.col);
+      if (ru && ru.trim() !== "" && !ruTexts.includes(ru.trim())) ruTexts.push(ru.trim());
+    });
+  });
+
+  if (!ruTexts.length) { say("Нет блюд для перевода.", true); return; }
+
+  this.disabled = true;
+  try {
+    say("ИИ переводит на казахский...");
+    const kkObj = await aiTranslateBatch(ruTexts, 'kk');
+    for (const [ru, kk] of Object.entries(kkObj)) window.TM.set(ru, 'kk', kk);
+    
+    await new Promise(r => setTimeout(r, 1500));
+    
+    say("ИИ переводит на английский...");
+    const enObj = await aiTranslateBatch(ruTexts, 'en');
+    for (const [ru, en] of Object.entries(enObj)) window.TM.set(ru, 'en', en);
+
+    say("Готово!");
+    renderCorrection(); // Обновляем поля на странице
+  } catch (e) {
+    say("Ошибка ИИ: " + e.message, true);
+  }
+  this.disabled = false;
+};
