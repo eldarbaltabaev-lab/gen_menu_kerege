@@ -66,14 +66,10 @@ function collectWeekItems(){
 function applyTranslations(itemList,kkMap,enMap){
   for(const {day,it,ruText,needKk,needEn} of itemList){
     if(needKk && kkMap[ruText]) {
-        console.log(`Сохраняю казахский: "${ruText}" -> "${kkMap[ruText]}"`); 
-        window.overrides['kk|'+ruText] = kkMap[ruText];
-        window.TM.set(ruText, 'kk', kkMap[ruText]);
+        window.TM.set(ruText, 'kk', kkMap[ruText]); // Оставляем только это
     }
     if(needEn && enMap[ruText]) {
-        console.log(`Сохраняю английский: "${ruText}" -> "${enMap[ruText]}"`); 
-        window.overrides['en|'+ruText] = enMap[ruText];
-        window.TM.set(ruText, 'en', enMap[ruText]);
+        window.TM.set(ruText, 'en', enMap[ruText]); // Оставляем только это
     }
   }
 }
@@ -312,69 +308,28 @@ function renderDictionary() {
   const tbody = document.getElementById('dictBody');
   tbody.innerHTML = '';
   
-  // Получаем текст поиска
   const searchInput = document.getElementById('dictSearch');
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-  const combinedDict = {};
-  
-  // 1. Читаем из оперативной памяти
-  if (window.TM && window.TM.data) {
-    for (const ru in window.TM.data) {
-      const cleanRu = ru.trim();
-      if (!cleanRu) continue;
-      if (!combinedDict[cleanRu]) combinedDict[cleanRu] = { kk: '', en: '' };
-      
-      const mem = window.TM.data[ru];
-      if (mem && typeof mem === 'object') {
-         if (typeof mem.kk === 'string') combinedDict[cleanRu].kk = mem.kk.trim();
-         if (typeof mem.en === 'string') combinedDict[cleanRu].en = mem.en.trim();
-      }
-    }
-  }
-  
-  // 2. Читаем оверрайды (ручные правки)
-  if (window.overrides) {
-    for (const key in window.overrides) {
-      const parts = key.split('|');
-      if (parts.length === 2 || parts.length === 3) {
-        const lang = parts[0];
-        const cleanRu = parts[parts.length - 1].trim();
-        if (!cleanRu) continue;
-        if (!combinedDict[cleanRu]) combinedDict[cleanRu] = { kk: '', en: '' };
-        
-        const val = window.overrides[key];
-        if (typeof val === 'string') combinedDict[cleanRu][lang] = val.trim();
-      }
-    }
-  }
-
-  // ВОТ ЗДЕСЬ СОЗДАЕТСЯ МАССИВ validWords (он фильтрует и сортирует)
-  const validWords = Object.keys(combinedDict).filter(ru => {
-    const data = combinedDict[ru];
-    const hasTranslation = data.kk !== '' || data.en !== '';
-    if (!hasTranslation) return false;
-
+  // Читаем только из глобального словаря (он уже загружен в window.TM)
+  const validWords = Object.keys(window.TM.data).filter(ru => {
+    const data = window.TM.data[ru];
+    if (!data || (!data.kk && !data.en)) return false;
     if (!query) return true;
-
     return ru.toLowerCase().includes(query) || 
-           data.kk.toLowerCase().includes(query) || 
-           data.en.toLowerCase().includes(query);
+           (data.kk && data.kk.toLowerCase().includes(query)) || 
+           (data.en && data.en.toLowerCase().includes(query));
   }).sort((a,b) => a.localeCompare(b));
   
-  // Проверка на пустоту
   if (validWords.length === 0) {
-    if (query) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px; color: #6b7280;">По запросу «${query}» ничего не найдено.</td></tr>`;
-    } else {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">Словарь пока пуст. Переведите меню.</td></tr>';
-    }
+    tbody.innerHTML = query 
+      ? `<tr><td colspan="3" style="text-align:center; padding: 20px;">По запросу «${query}» ничего не найдено.</td></tr>`
+      : '<tr><td colspan="3" style="text-align:center; padding: 20px;">Словарь пока пуст.</td></tr>';
     return;
   }
 
-  // Отрисовка строк таблицы
   validWords.forEach(ru => {
-    const data = combinedDict[ru];
+    const data = window.TM.data[ru];
     
     const tr = document.createElement('tr');
     
@@ -382,22 +337,16 @@ function renderDictionary() {
     const tdRu = document.createElement('td');
     const inRu = document.createElement('input');
     inRu.type = 'text'; inRu.value = ru; inRu.disabled = true;
-    inRu.style.background = '#f3f4f6'; inRu.style.color = '#6b7280';
+    inRu.style.background = 'transparent'; inRu.style.color = 'var(--mute)';
     tdRu.appendChild(inRu);
     
     // Казахский
     const tdKk = document.createElement('td');
     const inKk = document.createElement('input');
-    inKk.type = 'text'; inKk.value = data.kk;
+    inKk.type = 'text'; inKk.value = data.kk || '';
     inKk.onchange = () => {
       const v = inKk.value.trim();
-      if (v) {
-        window.overrides['kk|' + ru] = v;
-        window.TM.set(ru, 'kk', v);
-      } else {
-        delete window.overrides['kk|' + ru];
-      }
-      localStorage.setItem('manual_overrides', JSON.stringify(window.overrides));
+      window.TM.set(ru, 'kk', v); // Сохраняем навсегда
       if (typeof renderWeek === 'function') renderWeek(); 
     };
     tdKk.appendChild(inKk);
@@ -405,16 +354,10 @@ function renderDictionary() {
     // Английский
     const tdEn = document.createElement('td');
     const inEn = document.createElement('input');
-    inEn.type = 'text'; inEn.value = data.en;
+    inEn.type = 'text'; inEn.value = data.en || '';
     inEn.onchange = () => {
       const v = inEn.value.trim();
-      if (v) {
-        window.overrides['en|' + ru] = v;
-        window.TM.set(ru, 'en', v);
-      } else {
-        delete window.overrides['en|' + ru];
-      }
-      localStorage.setItem('manual_overrides', JSON.stringify(window.overrides));
+      window.TM.set(ru, 'en', v); // Сохраняем навсегда
       if (typeof renderWeek === 'function') renderWeek();
     };
     tdEn.appendChild(inEn);
