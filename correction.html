@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<title>Корректировка меню</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<main>
+  <!-- Шапка с кнопками -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+    <div>
+      <h1 style="margin-top: 0; margin-bottom: 5px;">📝 Корректировка</h1>
+      <p class="sub" style="margin-bottom: 0;">Временное изменение меню для выгрузки.</p>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <a href="index.html" class="btn alt" style="text-decoration: none; margin: 0; padding: 8px 16px; font-size: 14px; width: auto;">⬅ На главную</a>
+      <button class="btn alt" id="themeToggle" style="margin: 0; padding: 8px 16px; font-size: 14px; width: auto;">🌙 Тёмная</button>
+    </div>
+  </div>
+
+  <!-- Блок загрузки файла -->
+  <div class="card">
+    <label class="lbl" for="file">1. Загрузите файл Excel</label>
+    <div class="drop-zone">
+      <input id="file" type="file" accept=".xlsx,.xlsm">
+      <div class="drop-zone-prompt">Перетащите файл сюда или нажмите</div>
+    </div>
+    <div id="msg" role="status" style="margin-top: 15px; min-height: 1.2em;"></div>
+  </div>
+
+  <!-- Блок корректировки (скрыт по умолчанию) -->
+  <div id="step2" class="card hide">
+    <label class="lbl" for="daySelect">2. Выберите день для корректировки</label>
+    <select id="daySelect" style="margin-bottom: 20px;"></select>
+
+    <div id="correctionList"></div>
+
+    <div class="actions" style="margin-top: 20px;">
+      <button class="btn" id="downloadWord">📄 Скачать Word (.docx)</button>
+      <button class="btn alt" id="downloadJpeg">🖼️ Скачать JPEG (.jpg)</button>
+    </div>
+  </div>
+</main>
+
+<!-- Скрытый контейнер для картинок -->
+<div id="jpegContainer"></div>
+
+<!-- Подключаем скрипт -->
+<script src="correction.js"></script>
+</body>
+</html>
