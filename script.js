@@ -285,7 +285,7 @@ function getCategoryGroup(mealKey, label, rawCat) {
     if (l.includes("злаки") || l.includes("каша")) return "Ботқа / Каша / Porridge";
     if (l.includes("яйца") || l.includes("жұмыртқа") || l.includes("омлет")) return "Жұмыртқа / Яйца / Eggs";
     if (l.includes("горячее") || l.includes("гарнир") || l.includes("сосиск")) return "Ыстық тағам / Горячее / Hot dishes";
-    if (l.includes("йогурт") || l.includes("выпечка") || l.includes("тоқаш")) return "Бәліштер және сүт өнімдері/ Выпечка и молочные изделия/ Baking & Dairy products";
+    if (l.includes("йогурт") || l.includes("выпечка") || l.includes("тоқаш")) return "Бәліштер және сүт өнімдері/ Выпечка и молочные продукты/ Baking & Dairy products";
   } else {
     // ПРАВИЛА ДЛЯ ОБЕДА И УЖИНА
     if (l.includes("салатные овощи")) return null; // Игнорируем
