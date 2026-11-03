@@ -457,42 +457,87 @@ if (themeToggleBtn) {
     }
   };
 }
-// ===== ЛОГИКА ПЕРЕВОДА ИИ ДЛЯ КОРРЕКТИРОВКИ =====
+// ===== ЛОГИКА ПЕРЕВОДА ИИ ДЛЯ КОРРЕКТИРОВКИ (С ПЕРЕБОРОМ И ТАЙМАУТОМ) =====
 async function aiTranslateBatch(items, target) {
   const apiKey = localStorage.getItem('gemini_api_key');
   if (!apiKey) throw new Error('Сначала нажмите «⚙️ Настроить ИИ» на главной странице!');
   
   const langName = target === 'kk' ? 'казахский' : 'английский';
-  const prompt = `Переведи названия блюд с русского на ${langName}. 
+  let finalResult = {};
+  
+  // Делим на пачки по 30 блюд, чтобы ИИ не зависал
+  const chunkSize = 30;
+  
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    console.log(`[ИИ] Отправляю пачку ${i + 1} - ${i + chunk.length} из ${items.length}...`);
+    
+    const prompt = `Переведи названия блюд с русского на ${langName}. 
 Верни результат СТРОГО в формате JSON-объекта, где ключ - это оригинальный русский текст, а значение - перевод.
 Не добавляй лишнего текста, только JSON.
-Исходный список: ${JSON.stringify(items)}`;
+Исходный список: ${JSON.stringify(chunk)}`;
 
-  const models = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'];
+    // Рабочие модели (3.8 убрал, так как она часто виснет)
+    const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
+    let success = false;
 
-  for (let i = 0; i < models.length; i++) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${models[i]}:generateContent?key=${apiKey}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1 } })
-      });
+    for (const model of models) {
+      try {
+        console.log(`[ИИ] Пробую модель: ${model}...`);
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        
+        // Ставим таймаут на 15 секунд
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1 } }),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
 
-      if (res.status === 429) { await new Promise(r => setTimeout(r, 3000)); continue; }
-      if (!res.ok) continue; 
-      
-      const data = await res.json();
-      let text = data.candidates[0].content.parts[0].text.trim();
-      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-      const m = text.match(/\{[\s\S]*\}/); 
-      if (!m) throw new Error('ИИ вернул не JSON');
-      return JSON.parse(m[0]); 
-    } catch (err) {
-      console.warn(`Ошибка на модели ${models[i]}: ${err.message}`);
+        if (res.status === 429) { 
+            console.warn(`[ИИ] ${model} выдала 429. Жду 3 сек...`);
+            await new Promise(r => setTimeout(r, 3000)); 
+            continue; 
+        }
+        
+        if (!res.ok) {
+            console.warn(`[ИИ] ${model} вернула HTTP ${res.status}. Переключаюсь...`);
+            continue;
+        }
+        
+        const data = await res.json();
+        let text = data.candidates[0].content.parts[0].text.trim();
+        text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const m = text.match(/\{[\s\S]*\}/); 
+        if (!m) throw new Error('ИИ вернул не JSON');
+        
+        const parsed = JSON.parse(m[0]);
+        Object.assign(finalResult, parsed); // Добавляем переводы к общему результату
+        console.log(`[ИИ] УСПЕХ! Модель ${model} перевела пачку.`);
+        success = true;
+        break; // Выходим из перебора моделей для этой пачки
+
+      } catch (err) {
+        if (err.name === 'AbortError') {
+            console.warn(`[ИИ] Модель ${model} зависла (таймаут 15 сек). Переключаюсь...`);
+        } else {
+            console.warn(`[ИИ] Ошибка на модели ${model}: ${err.message}`);
+        }
+      }
     }
+    
+    if (!success) throw new Error('Все модели зависли или недоступны. Попробуйте позже.');
+    
+    // Небольшая пауза между пачками, чтобы не словлить лимиты
+    if (i + chunkSize < items.length) await new Promise(r => setTimeout(r, 2000));
   }
-  throw new Error('Все модели ИИ недоступны.');
+  
+  return finalResult;
 }
 
 document.getElementById('translateAiBtn').onclick = async function() {
@@ -517,7 +562,7 @@ document.getElementById('translateAiBtn').onclick = async function() {
 
   this.disabled = true;
   try {
-    say("ИИ переводит на казахский...");
+    say("ИИ переводит на казахский... (смотрите прогресс в консоли F12)");
     const kkObj = await aiTranslateBatch(ruTexts, 'kk');
     for (const [ru, kk] of Object.entries(kkObj)) window.TM.set(ru, 'kk', kk);
     
