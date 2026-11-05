@@ -26,6 +26,7 @@ window.TM = {
 };
 // Временные правки, привязанные к дате
 window.tempOverrides = {};
+window.tempHidden = {};
 
 const clean = v => String(v==null?"":v).replace(/\s+/g," ").trim();
 
@@ -138,7 +139,7 @@ function stripIds(e){
 
 async function buildDocxDay(dayObj,day,mealKey){
   const list=dayObj.w.blocks[mealKey]||[];
-  const picked = list; // Берем все, так как чекбоксов на этой странице нет
+  const picked = list.filter(it => !window.tempHidden[dayObj.serial + "|" + it.key]);
   const meal=MEALS.find(m=>m.k===mealKey);
 
   const zip=await JSZip.loadAsync(TPL,{base64:true});
@@ -190,7 +191,7 @@ async function buildJpegByMeal(dayObj, day, mealKey) {
   const w = dayObj.w;
   const meal = MEALS.find(m => m.k === mealKey);
   const list = w.blocks[mealKey] || [];
-  const picked = list; 
+  const picked = list.filter(it => !window.tempHidden[dayObj.serial + "|" + it.key]);
 
   const container = document.getElementById('jpegContainer');
   container.style.width = '1400px';
@@ -352,13 +353,31 @@ function renderCorrection() {
       const t = texts(dayObj, it);
       
       const row = document.createElement('div');
-      row.className = 'item';
-      row.style.padding = '0';
-      row.style.border = 'none';
-      row.style.marginBottom = '10px';
-      
-      const body = document.createElement('div');
-      body.className = 'item-body';
+        row.className = 'item';
+        row.style.padding = '0';
+        row.style.border = 'none';
+        row.style.marginBottom = '10px';
+        row.style.display = 'flex';
+        row.style.gap = '10px';
+        row.style.alignItems = 'flex-start';
+        
+        // СОЗДАЕМ ГАЛОЧКУ
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        const hideKey = dayObj.serial + "|" + it.key;
+        cb.checked = !window.tempHidden[hideKey];
+        cb.style.marginTop = '10px';
+        cb.style.width = '20px';
+        cb.style.height = '20px';
+        cb.onchange = () => {
+            if (cb.checked) delete window.tempHidden[hideKey];
+            else window.tempHidden[hideKey] = true;
+        };
+        row.appendChild(cb);
+        
+        const body = document.createElement('div');
+        body.className = 'item-body';
+        body.style.flex = '1';
 
       const createInput = (cls, lang, val) => {
         const inp = document.createElement('input');
