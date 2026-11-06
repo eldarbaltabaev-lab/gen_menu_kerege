@@ -310,8 +310,8 @@ async function buildJpegByMeal(dayObj, day, mealKey) {
   const container = document.getElementById('jpegContainer');
   
   // Настройки контейнера
-  container.style.width = '1400px';
-  container.style.padding = '20px 40px';
+  container.style.width = '1600px';
+  container.style.padding = '20px 20px';
   container.style.backgroundColor = '#f7eed8'; 
   container.style.fontFamily = "'Times New Roman', serif";
   container.style.color = '#000000';
