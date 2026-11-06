@@ -262,7 +262,7 @@ select option { background: var(--bg-color); color: var(--ink); }
 .week-container::-webkit-scrollbar-thumb:hover { background: var(--neon); }
 
 .carousel-btn {
-  width: 52px; height: 330px; /*align-self: center;*/ flex-shrink: 0;
+  width: 52px; /*height: 330px;*/ /*align-self: center;*/ flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   font-size: 18px; color: var(--ink); cursor: pointer;
   background: var(--input-bg); border: 1px solid var(--line); border-radius: 50%;
