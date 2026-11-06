@@ -376,14 +376,14 @@ let html = `
       const t = texts(dayObj, it);
       html += `<tr>`;
       if (index === 0) {
-        html += `<td rowspan="${items.length}" style="border: 1px solid #2b5782; padding: 10px; text-align: center; font-weight: bold; font-size: 18px; vertical-align: middle; background: rgba(229,216,193,0.3);">
+        html += `<td rowspan="${items.length}" style="border: 1px solid #2b5782; padding: 10px; text-align: center; font-weight: bold; font-size: 20px; vertical-align: middle; background: rgba(229,216,193,0.3);">
           ${groupName}
         </td>`;
       }
       html += `
-        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.kk || "—"}</td>
-        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.ru || "—"}</td>
-        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.en || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 22px;">${t.kk || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 22px;">${t.ru || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 22px;">${t.en || "—"}</td>
       </tr>`;
     });
   }
