@@ -61,24 +61,191 @@
     </div>
   </div>
   
-  <!-- Модальное окно Справки -->
-  <div id="helpModal" class="modal-overlay hide">
-    <div class="modal-content" style="max-width: 600px;">
-      <div class="modal-header">
-        <h2>🫖 Справка</h2>
-        <button class="modal-close" id="closeHelp">&times;</button>
+ <style>
+  .hp-lead { margin: 0 0 18px; color: var(--mute); font-size: 15px; line-height: 1.55; }
+
+  .hp-steps { list-style: none; margin: 0; padding: 0; counter-reset: hp; }
+  .hp-step {
+    counter-increment: hp;
+    position: relative;
+    padding: 0 0 18px 48px;
+  }
+  .hp-step::before {
+    content: counter(hp);
+    position: absolute; left: 0; top: 0;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--neon); color: #fff; font-weight: 700; font-size: 15px;
+  }
+  .hp-step::after {
+    content: "";
+    position: absolute; left: 15px; top: 36px; bottom: 4px;
+    width: 2px; background: var(--line);
+  }
+  .hp-step:last-child { padding-bottom: 4px; }
+  .hp-step:last-child::after { display: none; }
+  .hp-step h3 { margin: 4px 0 6px; font-size: 17px; font-weight: 700; color: var(--ink); }
+  .hp-step p { margin: 0 0 6px; font-size: 15px; line-height: 1.55; color: var(--ink); }
+  .hp-step ul { margin: 6px 0 0; padding-left: 20px; font-size: 15px; line-height: 1.55; color: var(--ink); }
+  .hp-step li { margin-bottom: 4px; }
+
+  .hp-note {
+    margin: 8px 0 0; padding: 10px 14px;
+    border-left: 4px solid var(--neon);
+    background: var(--input-bg); border-radius: 0 10px 10px 0;
+    font-size: 14px; line-height: 1.5; color: var(--ink);
+  }
+  .hp-note b { color: var(--neon); }
+
+  .hp-section {
+    margin: 22px 0 10px; padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 18px; font-weight: 700; color: var(--ink);
+  }
+
+  .hp-faq { margin: 0; }
+  .hp-faq details {
+    border: 1px solid var(--line); border-radius: 10px;
+    margin-bottom: 8px; background: var(--input-bg);
+  }
+  .hp-faq summary {
+    cursor: pointer; padding: 11px 14px; font-weight: 600;
+    font-size: 15px; color: var(--ink); list-style: none;
+  }
+  .hp-faq summary::-webkit-details-marker { display: none; }
+  .hp-faq summary::after { content: "+"; float: right; color: var(--neon); font-size: 18px; line-height: 1; }
+  .hp-faq details[open] summary::after { content: "–"; }
+  .hp-faq details p { margin: 0; padding: 0 14px 12px; font-size: 14px; line-height: 1.55; color: var(--ink); }
+
+  .hp-foot {
+    margin-top: 20px; padding: 14px 16px; border-radius: 12px;
+    background: var(--input-bg); border: 1px solid var(--line);
+    font-size: 14px; line-height: 1.6; color: var(--ink);
+  }
+  .hp-foot p { margin: 0 0 6px; }
+  .hp-foot p:last-child { margin: 0; }
+
+  @media (max-width: 480px) {
+    .hp-step { padding-left: 42px; }
+    .hp-step::before { width: 28px; height: 28px; font-size: 14px; }
+    .hp-step::after { left: 13px; top: 32px; }
+  }
+</style>
+
+<!-- Модальное окно Справки -->
+<div id="helpModal" class="modal-overlay hide">
+  <div class="modal-content" style="max-width: 680px;">
+    <div class="modal-header">
+      <h2>🫖 Справка</h2>
+      <button class="modal-close" id="closeHelp">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <p class="hp-lead">
+        Загрузите недельное меню из Excel, проверьте названия блюд, переведите их
+        на казахский и английский и скачайте готовые файлы. Всё работает прямо в браузере.
+      </p>
+
+      <ol class="hp-steps">
+
+        <li class="hp-step">
+          <h3>Загрузите файл меню</h3>
+          <p>Перетащите Excel-файл (<b>.xlsx</b> или <b>.xlsm</b>) в зону загрузки или нажмите на неё и выберите файл.</p>
+          <p>Приложение само найдёт недели, даты, завтрак, обед и ужин. Названия листов должны содержать номер недели, например «Неделя 1».</p>
+        </li>
+
+        <li class="hp-step">
+          <h3>Выберите неделю</h3>
+          <p>В списке «Неделя» выберите нужную. Дни показаны карточками. На телефоне и на узком экране листайте их стрелками ❮ ❯.</p>
+        </li>
+
+        <li class="hp-step">
+          <h3>Отметьте блюда и поправьте тексты</h3>
+          <ul>
+            <li>У каждого блюда три поля: русский, казахский и английский. Любое можно изменить прямо в карточке.</li>
+            <li><b>Галочка слева</b> решает, попадёт ли блюдо в файл. В Word и JPEG идут только отмеченные блюда.</li>
+            <li>Поля, где перевод пустой или совпадает с русским, подсвечены. Их нужно перевести.</li>
+          </ul>
+          <p class="hp-note">
+            <b>Важно.</b> Правки в карточках действуют, пока страница открыта, и распространяются на это блюдо во всех днях недели.
+            После обновления страницы они пропадут. Чтобы перевод сохранился навсегда, меняйте его в окне «📖 Словарь».
+          </p>
+        </li>
+
+        <li class="hp-step">
+          <h3>Переведите меню</h3>
+          <p>Внизу карточки две кнопки перевода. Они переводят только то, чего не хватает, и всё готовое остаётся нетронутым.</p>
+          <ul>
+            <li><b>🌐 Google</b> работает сразу, без настройки. Подходит для быстрой проверки.</li>
+            <li><b>🤖 ИИ</b> переводит названия блюд аккуратнее. Для него нужен API-ключ Google Gemini, см. ниже.</li>
+          </ul>
+          <p>Каждый перевод сохраняется в словарь. Если блюдо встретится на другой неделе, оно переведётся мгновенно и бесплатно.</p>
+        </li>
+
+        <li class="hp-step">
+          <h3>Скачайте результат</h3>
+          <ul>
+            <li><b>📄 Word</b> — ZIP-архив, внутри отдельный файл на каждый день и приём пищи, например <i>02.11.2026_ЗАВТРАК.docx</i>.</li>
+            <li><b>🖼️ JPEG</b> — ZIP с готовыми картинками-бланками. Блюда собраны по группам (каша, яйца, суп, блюдо, гарнир и т.д.).</li>
+          </ul>
+          <p class="hp-note">
+            Если в приёме пищи сняты все галочки, файл для него не создаётся.
+            Блюдо с незнакомой подписью в первой колонке Excel в JPEG не попадёт, а в Word останется.
+          </p>
+        </li>
+
+      </ol>
+
+      <div class="hp-section">Словарь переводов</div>
+      <p style="margin:0; font-size:15px; line-height:1.55; color:var(--ink);">
+        Кнопка «📖 Словарь» открывает все сохранённые переводы. Работает поиск по русскому, казахскому и английскому тексту.
+        Исправьте нужное поле, и оно сразу сохранится и подставится во все следующие меню.
+      </p>
+
+      <div class="hp-section">Настройка ИИ-перевода</div>
+      <ul style="margin:0; padding-left:20px; font-size:15px; line-height:1.6; color:var(--ink);">
+        <li>Нажмите «⚙️ Настроить ИИ» и вставьте свой ключ Google Gemini.</li>
+        <li>Когда ключ сохранён, кнопка меняется на «🔒 Ключ сохранён». Нажмите её ещё раз, чтобы удалить ключ или заменить на новый.</li>
+        <li>Ключ хранится только в вашем браузере. Если ключа нет, обратитесь к разработчику.</li>
+        <li>Если основная модель ИИ перегружена, программа сама пробует запасные. Это может занять несколько секунд.</li>
+      </ul>
+
+      <div class="hp-section">Частые вопросы</div>
+      <div class="hp-faq">
+        <details>
+          <summary>Файл не загружается</summary>
+          <p>Проверьте формат (.xlsx или .xlsm) и что на листах есть номер недели и строка с датами. Текст ошибки появится под зоной загрузки.</p>
+        </details>
+        <details>
+          <summary>ИИ ничего не переводит</summary>
+          <p>Убедитесь, что ключ сохранён и есть интернет. Подробности можно увидеть в консоли браузера (клавиша F12). Если ИИ недоступен, воспользуйтесь переводом Google.</p>
+        </details>
+        <details>
+          <summary>Пропали переводы или ключ</summary>
+          <p>Всё хранится в памяти браузера. Очистка данных сайта, другой браузер или другой компьютер начнут с пустого словаря и без ключа.</p>
+        </details>
+        <details>
+          <summary>Блюда нет в JPEG</summary>
+          <p>Группа определяется по подписи слева в Excel («Каша», «Суп», «Блюдо», «Гарнир» и т.д.). Если подпись нестандартная, блюдо пропускается.</p>
+        </details>
       </div>
-      <div class="modal-body" style="line-height: 1.6;">
-        <p><b>1. Загрузка:</b> Перетащите Excel-файл с недельным меню в зону загрузки.</p>
-        <p><b>2. Перевод:</b> Спустившись в самый низ вы увидите множество кнопок, для испоьзования ИИ переводчика вам нужно настроить API ключ, при его отсутсвии обратитесь к разроботчику</p>
-        <p><b>3. Редактирование:</b> Вы можете менять любой текст прямо в карточках блюд.Каждое вами измененное значение сохраняется в локальной памяти вашего браузера, в файл word  или jpeg попадут только те блюда у которых рядом проставлены галочки</p>
-        <p><b>4. Экспорт:</b> Скачивайте готовое меню в Word или JPEG.</p>
-        <p><b>5. Словарь:</b> Все ваши переводы сохраняются в памяти браузера. Нажав на кнопку «Словарь», вы можете редактировать их глобально.</p>
-        <p><b>6. Есть вопросы?:</b> Любые вопросы по проекту разроботчику сайта.</p>
-        <p><b>7. Есть идеи?:</b> Оставьте заявку в моем портфолио! <a target="_blank" rel="noopener noreferrer" class="prtf" href="https://eldarbaltabaev-lab.github.io/E.Baltabayev/"> Перейти->>></a></p>
+
+      <div class="hp-foot">
+        <p>
+           <b>Есть вопросы?</b> Напишите разработчику:
+          <a class="hp-wa" target="_blank" rel="noopener noreferrer"
+              href="https://wa.me/77023471267text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82%2C%20%D0%B5%D1%81%D1%82%D1%8C%20%D0%B2%D0%BE%D0%BF%D1%80%D0%BE%D1%81%20%D0%BF%D0%BE%20%D1%81%D0%B0%D0%B9%D1%82%D1%83">
+             💬 WhatsApp
+          </a>
+         </p>
+        <p><b>Есть идеи?</b> Оставьте заявку в портфолио:
+          <a target="_blank" rel="noopener noreferrer" class="prtf" href="https://eldarbaltabaev-lab.github.io/E.Baltabayev/">Перейти →</a>
+        </p>
       </div>
+
     </div>
   </div>
+</div>
 
 <div class="card">
   <label class="lbl" for="file">1. Файл недельного меню</label>
