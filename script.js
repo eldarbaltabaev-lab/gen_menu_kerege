@@ -313,7 +313,7 @@ async function buildJpegByMeal(dayObj, day, mealKey) {
   
   // Настройки контейнера
   container.style.width = '1600px';
-  //container.style.padding = '2px 2px';
+  container.style.padding = '1px 1px';
   container.style.backgroundColor = '#f7eed8'; 
   container.style.fontFamily = "'Times New Roman', serif";
   container.style.color = '#000000';
@@ -383,9 +383,9 @@ let html = `
         </td>`;
       }
       html += `
-        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.kk || "—"}</td>
-        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.ru || "—"}</td>
-        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.en || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 8px; text-align: center; font-size: 18px;">${t.kk || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 8px; text-align: center; font-size: 18px;">${t.ru || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 8px; text-align: center; font-size: 18px;">${t.en || "—"}</td>
       </tr>`;
     });
   }
