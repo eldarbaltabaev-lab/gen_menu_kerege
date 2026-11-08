@@ -6,6 +6,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <title>gen_menu</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="newyear.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -23,7 +24,7 @@
       </div>
     </div>
     <nav class="dock">
-      <button class="btn alt" id="sakuraBtn" aria-pressed="true" title="Лепестки сакуры"><i class="jk">桜</i>Сакура</button>
+      <button class="btn alt" id="snowBtn" aria-pressed="true" title="Снегопад"><i class="jk">雪</i>Снег</button>
       <button class="btn alt" id="themeToggle"><i class="jk ink">月</i>Тёмная</button>
       <button class="btn alt" id="updateBtn"><i class="jk">新</i>Что нового?</button>
       <button class="btn alt" id="helpBtn"><i class="jk ink">助</i>Справка</button>
@@ -88,7 +89,7 @@
       <div class="hp-card"><h4><i class="jk ink">寸</i>Вид JPEG</h4><p>Блок внизу страницы: размер шрифтов, ширина, мин. и макс. высота картинки и предпросмотр. Удобно, чтобы меню влезало в экран телевизора.</p></div>
       <div class="hp-card"><h4><i class="jk">出</i>День и приём пищи</h4><p>На карточке дня: кнопки 📄 и 🖼️ в разделителях (Завтрак, Обед, Ужин) и «День .docx / .jpeg» внизу. За день файлы собираются в ZIP.</p></div>
       <div class="hp-card"><h4><i class="jk ink">日</i>Тема</h4><p>Кнопка «Светлая / Тёмная» переключает оформление. Выбор запоминается.</p></div>
-      <div class="hp-card"><h4><i class="jk">桜</i>Сакура</h4><p>Лепестки на фоне. Если мешают, отключите кнопкой «Сакура», выбор запоминается.</p></div>
+      <div class="hp-card"><h4><i class="jk">雪</i>Снег</h4><p>Снегопад на фоне. Если мешает, отключите кнопкой «Снег», выбор запоминается. При включённом «уменьшить анимацию» в системе снега нет.</p></div>
       <div class="hp-card"><h4><i class="jk ink">矢</i>Стрелки ← →</h4><p>Листают дни, когда вы не печатаете в поле и не открыто окно.</p></div>
         </div>
 
@@ -154,57 +155,55 @@
 <div id="updateModal" class="modal-overlay hide">
   <div class="modal-content nw">
     <div class="nw-hero">
-      <span class="hanko" aria-hidden="true">新着</span>
+      <span class="hanko" aria-hidden="true">新雪</span>
       <div>
         <h2>Что нового?</h2>
-        <p class="nw-ver">Версия 4.0 · Ноябрь 2026</p>
+        <p class="nw-ver">Версия 5.0 · Зима</p>
       </div>
       <button class="modal-close" id="closeUpdate" aria-label="Закрыть">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="nw-sec">Новое в этой версии</div>
+      <div class="nw-sec">Новое в версии 5.0</div>
       <div class="nw-list">
-      <article class="nw-item is-new" style="--i:0">
-        <span class="nw-k" aria-hidden="true">和</span>
-        <div><h3>Новый облик «Васи и тушь»<span class="nw-tag">Новое</span></h3><p>Бумага васи, красная печать-ханко, волны сэйгайха, светлая и тёмная темы. Карточки дней раскрываются по очереди, как раздвижные перегородки сёдзи.</p></div>
-      </article>
-      <article class="nw-item is-new" style="--i:1">
-        <span class="nw-k" aria-hidden="true">朝</span>
-        <div><h3>Яркие разделители приёмов пищи<span class="nw-tag">Новое</span></h3><p>Завтрак, Обед и Ужин теперь крупные цветные полосы со своим кандзи: 朝 утро, 昼 день, 夕 вечер.</p></div>
-      </article>
-      <article class="nw-item is-new" style="--i:2">
-        <span class="nw-k" aria-hidden="true">出</span>
-        <div><h3>Скачивание одного дня или приёма пищи<span class="nw-tag">Новое</span></h3><p>Кнопки 📄 и 🖼️ прямо в разделителях и «День .docx / .jpeg» внизу карточки. За день файлы упаковываются в один ZIP. Берутся только отмеченные блюда.</p></div>
-      </article>
-      <article class="nw-item is-new" style="--i:3">
-        <span class="nw-k" aria-hidden="true">寸</span>
-        <div><h3>Рамки высоты для JPEG<span class="nw-tag">Новое</span></h3><p>В «Вид JPEG» можно задать ширину, минимальную и максимальную высоту картинки, чтобы меню помещалось на экран телевизора. Результат виден в предпросмотре.</p></div>
-      </article>
-      <article class="nw-item is-new" style="--i:4">
-        <span class="nw-k" aria-hidden="true">桜</span>
-        <div><h3>Сакура<span class="nw-tag">Новое</span></h3><p>На фоне тихо падают лепестки. Кнопка «🌸 Сакура» выключает их, выбор запоминается. Если в системе включено «уменьшить анимацию», лепестков не будет.</p></div>
-      </article>
-      <article class="nw-item is-new" style="--i:5">
-        <span class="nw-k" aria-hidden="true">技</span>
-        <div><h3>Мелочи для удобства<span class="nw-tag">Новое</span></h3><p>Сообщения всплывают сверху и видны с любого места страницы. Стрелки ← → листают дни. Галочка «штампуется», а кнопки отвечают волной туши.</p></div>
-      </article>
+      <article class="nw-item is-new" style="--i:0"><span class="nw-k" aria-hidden="true">桜</span><div><h3>Сакура на снегу<span class="nw-tag">Новое</span></h3><p>Новый зимний облик: розовая дымка, лепестки сакуры падают вместе со снегом, панели из матового стекла с нежной кромкой, у каждого дня свой пастельный оттенок. Японская тема осталась: Фудзи, ворота торий, печать-ханко, иероглифы.</p></div></article>
+      <article class="nw-item is-new" style="--i:1"><span class="nw-k" aria-hidden="true">年</span><div><h3>Счётчик до Нового года<span class="nw-tag">Новое</span></h3><p>В шапке появилась кнопка с числом дней до Нового года. После 1 января она пишет «С Новым годом · прошло N дн.» две недели, потом считает до следующего. Нажмите на неё, и взлетит салют.</p></div></article>
+      <article class="nw-item is-new" style="--i:2"><span class="nw-k" aria-hidden="true">報</span><div><h3>Сообщения внизу экрана<span class="nw-tag">Новое</span></h3><p>Уведомления («файл загружен», «нет отмеченных блюд» и другие) теперь появляются внизу и видны с любого места страницы, а не только в самом верху.</p></div></article>
+      <article class="nw-item is-new" style="--i:3"><span class="nw-k" aria-hidden="true">静</span><div><h3>Спокойная карусель<span class="nw-tag">Новое</span></h3><p>В карточках дней убраны лишние анимации: нет «выезда» при появлении, подпрыгивания при наведении и бликов. Листать и отмечать блюда стало спокойнее и быстрее. Стрелки ❮ ❯ растянуты на всю высоту.</p></div></article>
+      <article class="nw-item is-new" style="--i:4"><span class="nw-k" aria-hidden="true">角</span><div><h3>Более строгие углы<span class="nw-tag">Новое</span></h3><p>Скругления везде уменьшены: панели, кнопки, поля, окна и карточки стали аккуратнее и прямее.</p></div></article>
+      <article class="nw-item is-new" style="--i:5"><span class="nw-k" aria-hidden="true">雪</span><div><h3>Снегопад и пейзаж<span class="nw-tag">Новое</span></h3><p>Кнопка «Снег» включает и выключает снегопад, выбор запоминается. Над заголовком гора Фудзи и торий, по краю страницы сосульки. Светлая тема это утро, тёмная это лунная ночь.</p></div></article>
       </div>
       <div class="nw-sec">Раньше</div>
       <div class="nw-list">
       <article class="nw-item" style="--i:6">
+        <span class="nw-k" aria-hidden="true">和</span>
+        <div><h3>Новый облик «Васи и тушь»</h3><p>Бумага васи, красная печать-ханко, волны сэйгайха, светлая и тёмная темы. Карточки дней раскрываются по очереди, как раздвижные перегородки сёдзи.</p></div>
+      </article>
+      <article class="nw-item" style="--i:7">
+        <span class="nw-k" aria-hidden="true">朝</span>
+        <div><h3>Яркие разделители приёмов пищи</h3><p>Завтрак, Обед и Ужин теперь крупные цветные полосы со своим кандзи: 朝 утро, 昼 день, 夕 вечер.</p></div>
+      </article>
+      <article class="nw-item" style="--i:8">
+        <span class="nw-k" aria-hidden="true">出</span>
+        <div><h3>Скачивание одного дня или приёма пищи</h3><p>Кнопки 📄 и 🖼️ прямо в разделителях и «День .docx / .jpeg» внизу карточки. За день файлы упаковываются в один ZIP. Берутся только отмеченные блюда.</p></div>
+      </article>
+      <article class="nw-item" style="--i:9">
+        <span class="nw-k" aria-hidden="true">寸</span>
+        <div><h3>Рамки высоты для JPEG</h3><p>В «Вид JPEG» можно задать ширину, минимальную и максимальную высоту картинки, чтобы меню помещалось на экран телевизора. Результат виден в предпросмотре.</p></div>
+      </article>
+      <article class="nw-item" style="--i:10">
         <span class="nw-k" aria-hidden="true">訳</span>
         <div><h3>Умный переводчик с автопереключением</h3><p>Если основная модель ИИ перегружена или выдаёт ошибку, скрипт сам переключится на резервные версии, и перевод не остановится.</p></div>
       </article>
-      <article class="nw-item" style="--i:7">
+      <article class="nw-item" style="--i:10">
         <span class="nw-k" aria-hidden="true">辞</span>
         <div><h3>Словарь переводов и поиск</h3><p>Все переведённые блюда сохраняются в браузере и переводятся мгновенно, без затрат лимитов ИИ. В словаре есть поиск по трём языкам и прямое редактирование.</p></div>
       </article>
-      <article class="nw-item" style="--i:8">
+      <article class="nw-item" style="--i:10">
         <span class="nw-k" aria-hidden="true">絵</span>
         <div><h3>Экспорт JPEG по бланку</h3><p>Логотипы по краям, синие рамки и группировка по категориям (Суп, Салат, Блюда и т.д.). Размер шрифтов настраивается в «Вид JPEG».</p></div>
       </article>
       </div>
-      <div class="nw-foot">ありがとう · Спасибо, что пользуетесь</div>
+      <div class="nw-foot">良いお年を · Спасибо и тёплой зимы</div>
     </div>
   </div>
 </div>
@@ -217,5 +216,6 @@
 <script src="ui.js"></script>
 <script src="daydl.js"></script>
 <script src="help.js"></script>
+<script src="newyear.js"></script>
 </body>
 </html>

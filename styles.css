@@ -1,41 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@600;700;800&family=Zen+Old+Mincho:wght@700;900&display=swap');
 /* =====================================================================
-   МЕНЮ · «Васи и тушь»
-   Бумага васи, тушь сумi, индиго (ай), красная печать ханко.
+   МЕНЮ · «Васи и тушь», зимняя версия 5.0 · «Юки-гэсики» (雪景色)
+   Бумага васи, тушь сумi, индиго (ай), красная печать ханко и снег.
    Цвета меняются в :root и [data-theme="dark"].
    Имена переменных (--neon, --line, --ring…) сохранены: tools.js их использует.
    ===================================================================== */
 :root {
-  --bg-color: #e9e5db; --paper: #f7f4ec; --card-bg: #f7f4ec; --ticket-bg: #fbf9f3; --modal-bg: #f7f4ec;
-  --ink: #23201d; --mute: #6f695f; --tag: #243b6b;
-  --btn: #243b6b; --btn-hi: #1b2e55; --on-btn: #f7f4ec;
-  --neon: #243b6b; --neon-2: #5e7f5a; --neon-3: #b8322a; --shu: #b8322a; --kin: #b08d3e;
-  --neon-glow: rgba(36, 59, 107, .28); --ring: rgba(36, 59, 107, .16);
-  --line: rgba(35, 32, 29, .12); --line-strong: rgba(35, 32, 29, .26); --line-hover: rgba(36, 59, 107, .55);
-  --warn: #b8322a; --input-bg: rgba(36, 59, 107, .05); --input-bg-hover: rgba(36, 59, 107, .10);
-  --grad: #243b6b; --wave: rgba(36, 59, 107, .20);
-  --sun: rgba(184, 50, 42, .11); --mist: rgba(36, 59, 107, .09);
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, .7) inset, 0 18px 40px -26px rgba(35, 32, 29, .45);
-  --shadow-modal: 0 40px 90px -30px rgba(20, 18, 16, .6);
+  --bg-color: #dfe8f1; --paper: #f4f8fc; --card-bg: rgba(246, 250, 253, .96); --ticket-bg: #fbfdff; --modal-bg: #f4f8fc;
+  --ink: #1a2233; --mute: #5b677b; --tag: #1d3a70;
+  --btn: #1f3a6e; --btn-hi: #16305c; --on-btn: #f4f8fc;
+  --neon: #1f3a6e; --neon-2: #3f7a6a; --neon-3: #c23b2f; --shu: #c23b2f; --kin: #b8964a; --ice: #8fbbe0; --ume: #d98aa5;
+  --neon-glow: rgba(31, 58, 110, .28); --ring: rgba(46, 94, 170, .18);
+  --line: rgba(26, 34, 51, .12); --line-strong: rgba(26, 34, 51, .26); --line-hover: rgba(31, 58, 110, .55);
+  --warn: #c23b2f; --input-bg: rgba(46, 94, 170, .05); --input-bg-hover: rgba(46, 94, 170, .10);
+  --grad: #1f3a6e; --wave: rgba(70, 120, 180, .24);
+  --sun: rgba(194, 59, 47, .13); --mist: rgba(150, 190, 230, .30);
+  --sky-top: #cddfef; --sky-bot: #edf4fa;
+  --snow: #ffffff; --snow-edge: rgba(110, 150, 200, .55);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 18px 40px -26px rgba(20, 44, 90, .5);
+  --shadow-modal: 0 40px 90px -30px rgba(12, 26, 60, .6);
   --ease: cubic-bezier(.2, .8, .2, 1);
   --serif: 'Zen Old Mincho', 'Noto Serif', 'Times New Roman', serif;
   --sans: 'Noto Sans', 'Noto Sans JP', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --mb: #c0771f; --ml: #4f7a4a; --md: #3a58a0;
+  --mb: #b9731f; --ml: #3f7a5a; --md: #2f4f9a;
+  --fuji: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 520'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23eaf2fa' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23eaf2fa' stop-opacity='.95'/%3E%3C/linearGradient%3E%3Cg id='p'%3E%3Crect x='-3' y='24' width='6' height='13' fill='%234a3b30'/%3E%3Cpath fill='%2334554b' d='M0 -40L14 -14H-14ZM0 -26L19 4H-19ZM0 -10L24 24H-24Z'/%3E%3Cpath fill='%23ffffff' d='M0 -40L7 -27H-7ZM0 -26L9.5 -11H-9.5ZM0 -10L12 7H-12Z'/%3E%3C/g%3E%3C/defs%3E%3Cpath fill='%23c3d3e6' d='M0 520V392Q100 346 200 372T400 356T600 384T800 352T1000 392L1600 392V520Z'/%3E%3Cpath fill='%239db5d2' d='M700 520C880 450 1030 270 1128 152H1172C1270 270 1420 450 1600 520Z'/%3E%3Cpath fill='%233c5480' fill-opacity='.2' d='M1172 152C1270 270 1420 450 1600 520H1190C1215 400 1205 270 1172 152Z'/%3E%3Cpath fill='%23ffffff' d='M1128 152H1172C1202 190 1230 222 1255 249L1236 242 1222 268 1204 240 1186 274 1166 242 1148 276 1128 242 1110 272 1094 238 1074 262 1060 240 1045 249C1075 222 1103 190 1128 152Z'/%3E%3Crect y='396' width='1600' height='96' fill='url(%23m)'/%3E%3Cpath fill='%23b3c8de' d='M0 520V438Q160 398 320 430T640 424T900 452V520Z'/%3E%3Cpath fill='%23b3c8de' d='M1000 520V458Q1180 430 1340 452T1600 440V520Z'/%3E%3Cpath fill='%23f9fcff' d='M0 520V474Q260 446 520 470T1040 466T1600 458V520Z'/%3E%3Cg fill='%23c23b2f'%3E%3Crect x='1318' y='410' width='5' height='54'/%3E%3Crect x='1357' y='410' width='5' height='54'/%3E%3Crect x='1316' y='426' width='48' height='4'/%3E%3Cpath d='M1304 402Q1340 414 1376 402L1372 410Q1340 420 1308 410Z'/%3E%3C/g%3E%3Cuse href='%23p' transform='translate(90 472) scale(1.25)'/%3E%3Cuse href='%23p' transform='translate(152 484) scale(.9)'/%3E%3Cuse href='%23p' transform='translate(38 488)'/%3E%3Cuse href='%23p' transform='translate(1482 472) scale(1.2)'/%3E%3Cuse href='%23p' transform='translate(1544 486) scale(.85)'/%3E%3Cuse href='%23p' transform='translate(1422 488) scale(.8)'/%3E%3C/svg%3E"); --icicle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='34' viewBox='0 0 52 34'%3E%3Cpath d='M0 0H52V3L47 3 42 26 37 3 31 3 26 16 21 3 15 3 9 32 4 3 0 3Z' fill='%23ffffff' fill-opacity='1' stroke='%23a9c4df' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 [data-theme="dark"] {
-  --bg-color: #11131a; --paper: #191c26; --card-bg: #191c26; --ticket-bg: #1e222e; --modal-bg: #171a23;
-  --ink: #ebe6da; --mute: #9b968b; --tag: #a9bcf0;
-  --btn: #3a58a0; --btn-hi: #4a69b4; --on-btn: #f7f4ec;
-  --neon: #5877c4; --neon-2: #9dbe8f; --neon-3: #e0594f; --shu: #e0594f; --kin: #d1ae5e;
-  --neon-glow: rgba(88, 119, 196, .4); --ring: rgba(120, 150, 230, .2);
-  --line: rgba(235, 230, 218, .10); --line-strong: rgba(235, 230, 218, .24); --line-hover: rgba(120, 150, 230, .6);
-  --warn: #ff7a70; --input-bg: rgba(235, 230, 218, .045); --input-bg-hover: rgba(235, 230, 218, .09);
-  --grad: #3a58a0; --wave: rgba(143, 166, 224, .17);
-  --sun: rgba(209, 174, 94, .10); --mist: rgba(88, 119, 196, .14);
-  --shadow-card: 0 20px 44px -26px rgba(0, 0, 0, .8);
-  --shadow-modal: 0 40px 100px -30px rgba(0, 0, 0, .9), 0 0 0 1px rgba(235, 230, 218, .08);
-  --mb: #e8a84f; --ml: #9dc38e; --md: #93aaee;
+  --bg-color: #0a0f1e; --paper: #111a30; --card-bg: rgba(17, 26, 48, .96); --ticket-bg: #16213b; --modal-bg: #0f172b;
+  --ink: #e8eef9; --mute: #93a0b8; --tag: #a9c4f5;
+  --btn: #3558a8; --btn-hi: #4469bd; --on-btn: #f4f8fc;
+  --neon: #6f98e8; --neon-2: #8fc9ae; --neon-3: #ee6a5e; --shu: #e5584c; --kin: #e0c070; --ice: #a9cdf5; --ume: #e9a0b8;
+  --neon-glow: rgba(111, 152, 232, .4); --ring: rgba(130, 170, 240, .22);
+  --line: rgba(232, 238, 249, .10); --line-strong: rgba(232, 238, 249, .24); --line-hover: rgba(130, 170, 240, .6);
+  --warn: #ff7f73; --input-bg: rgba(232, 238, 249, .045); --input-bg-hover: rgba(232, 238, 249, .09);
+  --grad: #3558a8; --wave: rgba(150, 185, 240, .18);
+  --sun: rgba(0, 0, 0, 0); --mist: rgba(70, 100, 190, .20);
+  --sky-top: #0a1230; --sky-bot: #17264d;
+  --snow: #eef4ff; --snow-edge: rgba(150, 190, 255, .5);
+  --shadow-card: 0 20px 44px -26px rgba(0, 0, 0, .85);
+  --shadow-modal: 0 40px 100px -30px rgba(0, 0, 0, .9), 0 0 0 1px rgba(232, 238, 249, .08);
+  --mb: #ebb257; --ml: #8fc9ae; --md: #9db6f2;
+  --fuji: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 520'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%232a3b6c' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%232a3b6c' stop-opacity='.95'/%3E%3C/linearGradient%3E%3Cg id='p'%3E%3Crect x='-3' y='24' width='6' height='13' fill='%232a2020'/%3E%3Cpath fill='%230c1829' d='M0 -40L14 -14H-14ZM0 -26L19 4H-19ZM0 -10L24 24H-24Z'/%3E%3Cpath fill='%23cfdcf5' d='M0 -40L7 -27H-7ZM0 -26L9.5 -11H-9.5ZM0 -10L12 7H-12Z'/%3E%3C/g%3E%3C/defs%3E%3Cpath fill='%231b2a52' d='M0 520V392Q100 346 200 372T400 356T600 384T800 352T1000 392L1600 392V520Z'/%3E%3Cpath fill='%2327396c' d='M700 520C880 450 1030 270 1128 152H1172C1270 270 1420 450 1600 520Z'/%3E%3Cpath fill='%23070d22' fill-opacity='.38' d='M1172 152C1270 270 1420 450 1600 520H1190C1215 400 1205 270 1172 152Z'/%3E%3Cpath fill='%23dfeaff' d='M1128 152H1172C1202 190 1230 222 1255 249L1236 242 1222 268 1204 240 1186 274 1166 242 1148 276 1128 242 1110 272 1094 238 1074 262 1060 240 1045 249C1075 222 1103 190 1128 152Z'/%3E%3Crect y='396' width='1600' height='96' fill='url(%23m)'/%3E%3Cpath fill='%2317234a' d='M0 520V438Q160 398 320 430T640 424T900 452V520Z'/%3E%3Cpath fill='%2317234a' d='M1000 520V458Q1180 430 1340 452T1600 440V520Z'/%3E%3Cpath fill='%2326335d' d='M0 520V474Q260 446 520 470T1040 466T1600 458V520Z'/%3E%3Cg fill='%23dc4a3d'%3E%3Crect x='1318' y='410' width='5' height='54'/%3E%3Crect x='1357' y='410' width='5' height='54'/%3E%3Crect x='1316' y='426' width='48' height='4'/%3E%3Cpath d='M1304 402Q1340 414 1376 402L1372 410Q1340 420 1308 410Z'/%3E%3C/g%3E%3Cuse href='%23p' transform='translate(90 472) scale(1.25)'/%3E%3Cuse href='%23p' transform='translate(152 484) scale(.9)'/%3E%3Cuse href='%23p' transform='translate(38 488)'/%3E%3Cuse href='%23p' transform='translate(1482 472) scale(1.2)'/%3E%3Cuse href='%23p' transform='translate(1544 486) scale(.85)'/%3E%3Cuse href='%23p' transform='translate(1422 488) scale(.8)'/%3E%3C/svg%3E"); --icicle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='34' viewBox='0 0 52 34'%3E%3Cpath d='M0 0H52V3L47 3 42 26 37 3 31 3 26 16 21 3 15 3 9 32 4 3 0 3Z' fill='%23cfe0ff' fill-opacity='.62'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -52,7 +58,7 @@ body::before {
     radial-gradient(60% 45% at 0% 100%, var(--mist), transparent 70%),
     radial-gradient(50% 40% at 100% 60%, var(--mist), transparent 70%);
 }
-#sakura { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+#snow { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 main { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 40px 24px 70px; }
 
 /* ===== ШАПКА ===== */
@@ -105,7 +111,7 @@ h1 { margin: 0; font: 900 clamp(46px, 8vw, 88px)/1 var(--serif); letter-spacing:
 .btn.alt:hover:not(:disabled) { background: var(--input-bg-hover); border-color: var(--neon); box-shadow: inset 0 -3px 0 var(--shu); }
 .btn:disabled { cursor: progress; animation: busy 1s ease-in-out infinite; }
 @keyframes busy { 50% { opacity: .55; } }
-#sakuraBtn[aria-pressed="false"] { opacity: .55; }
+#snowBtn[aria-pressed="false"] { opacity: .55; }
 .actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
 .actions .btn { margin-top: 0 !important; }
 #aiKeyBtn { grid-column: 1 / -1; justify-self: center; width: auto; background: transparent; color: var(--tag); border: 1px dashed var(--line-strong); box-shadow: none; }
@@ -319,7 +325,7 @@ h1::after { content: ""; position: absolute; left: 2px; right: 0; bottom: -8px; 
 .jk.kin { background: var(--kin); color: #23201d; box-shadow: inset 0 0 0 1.5px var(--kin), inset 0 0 0 2.5px rgba(255, 255, 255, .5); }
 .btn:hover .jk { transform: rotate(4deg) scale(1.12); }
 .dock .btn { display: inline-flex; align-items: center; justify-content: center; }
-#sakuraBtn[aria-pressed="false"] .jk { background: var(--mute); box-shadow: inset 0 0 0 1.5px var(--mute), inset 0 0 0 2.5px rgba(255, 255, 255, .4); }
+#snowBtn[aria-pressed="false"] .jk { background: var(--mute); box-shadow: inset 0 0 0 1.5px var(--mute), inset 0 0 0 2.5px rgba(255, 255, 255, .4); }
 .modal-header h2 { display: flex; align-items: center; }
 .modal-header h2 .jk { width: 32px; height: 32px; margin-right: 12px; font-size: 18px; }
 
@@ -366,6 +372,125 @@ a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
+
+/* =====================================================================
+   ЗИМНЕЕ ОБНОВЛЕНИЕ · «Юки-гэсики» 雪景色 (снежный пейзаж)
+   Всё нарисовано стилями и одним лёгким canvas со снегом:
+   небо, луна и звёзды, Фудзи с торий, снежные шапки, сосульки.
+   Фон рисуется один раз, ничего тяжёлого (без blur и backdrop-filter).
+   ===================================================================== */
+::selection { background: var(--ice); color: #12203a; }
+
+/* ---- небо: утреннее (светлая тема) и лунная ночь со звёздами (тёмная) ---- */
+body::before {
+  background:
+    radial-gradient(circle at 84% 15%, var(--sun) 0 112px, transparent 113px),
+    radial-gradient(60% 40% at 0% 100%, var(--mist), transparent 70%),
+    radial-gradient(50% 36% at 100% 70%, var(--mist), transparent 70%),
+    linear-gradient(180deg, var(--sky-top) 0, var(--sky-bot) 50%, var(--bg-color) 100%);
+}
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(circle at 84% 14%, #f6f1dc 0 26px, rgba(246, 241, 220, .20) 29px, rgba(246, 241, 220, .06) 96px, transparent 190px),
+    radial-gradient(1.6px 1.6px at 9% 12%, rgba(255, 255, 255, .95), transparent),
+    radial-gradient(1.2px 1.2px at 17% 31%, rgba(255, 255, 255, .8), transparent),
+    radial-gradient(1.8px 1.8px at 26% 8%, rgba(255, 255, 255, .9), transparent),
+    radial-gradient(1.2px 1.2px at 33% 24%, rgba(255, 255, 255, .7), transparent),
+    radial-gradient(1.5px 1.5px at 42% 14%, rgba(255, 255, 255, .85), transparent),
+    radial-gradient(1.2px 1.2px at 51% 36%, rgba(255, 255, 255, .65), transparent),
+    radial-gradient(1.7px 1.7px at 58% 9%, rgba(255, 255, 255, .9), transparent),
+    radial-gradient(1.2px 1.2px at 66% 27%, rgba(255, 255, 255, .7), transparent),
+    radial-gradient(1.5px 1.5px at 72% 16%, rgba(255, 255, 255, .85), transparent),
+    radial-gradient(1.2px 1.2px at 93% 38%, rgba(255, 255, 255, .7), transparent),
+    radial-gradient(1.6px 1.6px at 4% 44%, rgba(255, 255, 255, .8), transparent),
+    radial-gradient(60% 40% at 0% 100%, var(--mist), transparent 70%),
+    linear-gradient(180deg, var(--sky-top) 0, var(--sky-bot) 55%, var(--bg-color) 100%);
+}
+
+/* ---- пейзаж над заголовком: Фудзи, сосны, красные ворота торий ---- */
+body::after {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; z-index: -1; pointer-events: none;
+  height: clamp(300px, 40vw, 470px);
+  background: var(--fuji) 70% 100% / auto 100% no-repeat;
+  -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent);
+  animation: heroIn 1.4s ease .1s backwards;
+}
+@keyframes heroIn { from { opacity: 0; } }
+
+/* ---- сосульки по верхней кромке страницы ---- */
+html::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 34px; z-index: 0; pointer-events: none;
+  background: var(--icicle) 0 0 / 52px 34px repeat-x, var(--icicle) 21px 0 / 33px 22px repeat-x;
+  animation: heroIn 1.2s ease .3s backwards;
+}
+
+/* ---- снегопад (canvas из ui.js) ---- */
+#snow { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+#snowBtn[aria-pressed="false"] { opacity: .55; }
+#snowBtn[aria-pressed="false"] .jk { background: var(--mute); box-shadow: inset 0 0 0 1.5px var(--mute), inset 0 0 0 2.5px rgba(255, 255, 255, .4); }
+
+/* ---- кнопки шапки читаются поверх пейзажа ---- */
+.dock .btn.alt { background: var(--paper); }
+.dock .btn.alt:hover:not(:disabled) { background: color-mix(in srgb, var(--paper) 86%, var(--ice)); }
+
+/* ---- снежная шапка на панелях ---- */
+.card::before {
+  top: -9px; left: 12px; right: 12px; width: auto; height: 16px; border: 0;
+  background:
+    radial-gradient(circle at 12px 100%, var(--snow) 0 11px, transparent 12px) 0 0 / 34px 16px repeat-x,
+    radial-gradient(circle at 9px 100%, var(--snow) 0 8px, transparent 9px) 17px 3px / 27px 16px repeat-x,
+    linear-gradient(var(--snow), var(--snow)) 0 100% / 100% 7px no-repeat;
+  filter: drop-shadow(0 -1px 0 var(--snow-edge));
+  transform-origin: 50% 100%; animation: settle .9s var(--ease) .35s backwards;
+}
+@keyframes settle { from { transform: scaleY(0); opacity: 0; } }
+
+/* ---- снег свисает с табличек-дней и с окон ---- */
+.day-card { position: relative; box-shadow: 0 14px 28px -22px rgba(20, 44, 90, .55); }
+.day-card:hover { box-shadow: 0 28px 44px -26px rgba(20, 44, 90, .6), 0 0 0 1px var(--line-hover); }
+[data-theme="dark"] .day-card { box-shadow: 0 14px 28px -20px rgba(0, 0, 0, .85); }
+[data-theme="dark"] .day-card:hover { box-shadow: 0 28px 44px -24px rgba(0, 0, 0, .9), 0 0 0 1px var(--line-hover); }
+.day-card::before, .modal-content::before {
+  content: ""; position: absolute; z-index: 3; top: -1px; left: -1px; right: -1px; height: 14px; pointer-events: none;
+  background:
+    radial-gradient(circle at 12px 0, var(--snow) 0 11px, transparent 12px) 0 0 / 30px 14px repeat-x,
+    radial-gradient(circle at 8px 0, var(--snow) 0 8px, transparent 9px) 15px 0 / 22px 14px repeat-x,
+    linear-gradient(var(--snow), var(--snow)) 0 0 / 100% 5px no-repeat;
+  transform-origin: 50% 0; animation: settleDown .8s var(--ease) .5s backwards;
+}
+.modal-content { position: relative; }
+.modal-content::before { height: 11px; z-index: 4; animation-delay: .25s; }
+@keyframes settleDown { from { transform: scaleY(0); } }
+
+/* ---- снег на красной печати ---- */
+.hanko { position: relative; }
+.hanko::after {
+  content: ""; position: absolute; top: -8px; left: -2px; right: -2px; height: 14px; pointer-events: none;
+  background:
+    radial-gradient(circle at 9px 100%, var(--snow) 0 8px, transparent 9px) 0 0 / 19px 14px repeat-x,
+    linear-gradient(var(--snow), var(--snow)) 0 100% / 100% 6px no-repeat;
+  filter: drop-shadow(0 -1px 0 var(--snow-edge));
+}
+
+/* ---- окна: Фудзи на шапке «Что нового» и «Справка» ---- */
+.nw-hero { isolation: isolate; }
+.nw-hero::before {
+  content: ""; position: absolute; right: 0; bottom: 0; width: 300px; height: 150px; z-index: -1; pointer-events: none; opacity: .85;
+  background: var(--fuji) 78% 100% / auto 150px no-repeat;
+}
+.nw-hero::after { background: color-mix(in srgb, var(--shu) 10%, transparent); }
+
+/* ---- холодные мелочи ---- */
+.drop-zone { border-color: color-mix(in srgb, var(--ice) 60%, var(--line-strong)); }
+.drop-zone:hover, .drop-zone.drag-over { box-shadow: 0 0 0 4px var(--ring), 0 0 30px -6px var(--ice); }
+.day-header { background: linear-gradient(180deg, color-mix(in srgb, var(--btn) 88%, #5f8fd8), var(--btn)); }
+.btn:hover:not(:disabled) { box-shadow: inset 0 -3px 0 var(--shu), 0 12px 22px -10px var(--neon-glow), 0 0 0 1px color-mix(in srgb, var(--ice) 45%, transparent); }
+
+@media (max-width: 768px) {
+  body::after { height: 300px; background-position: 66% 100%; }
+  .card::before { left: 8px; right: 8px; }
+  .nw-hero::before { width: 200px; opacity: .6; }
 }
 
 /* =====================================================================

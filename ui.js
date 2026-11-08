@@ -59,37 +59,77 @@
     new MutationObserver(paint).observe(tg, { childList: true }); paint();
   }
 
-  /* ---- лепестки сакуры (canvas, на паузе во вкладке в фоне) ---- */
-  const cv = document.createElement('canvas'); cv.id = 'sakura'; document.body.prepend(cv);
+  /* ---- снегопад: canvas, готовые спрайты, пауза во вкладке в фоне ---- */
+  const cv = document.createElement('canvas'); cv.id = 'snow'; document.body.prepend(cv);
   const g = cv.getContext('2d'), dpr = Math.min(devicePixelRatio || 1, 2);
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let W, H, P = [], on = !still && localStorage.getItem('sakura') !== 'off', raf = 0;
-  const mk = top => ({ x: Math.random() * W, y: top ? -20 : Math.random() * H, s: 6 + Math.random() * 7, v: .3 + Math.random() * .5,
-    w: Math.random() * 6.28, ws: .008 + Math.random() * .012, r: Math.random() * 6.28, rs: (Math.random() - .5) * .02, a: .3 + Math.random() * .4 });
+  let W, H, F = [], SP = null, on = !still && localStorage.getItem('snow') !== 'off', raf = 0, last = 0;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const sheet = s => { const c = document.createElement('canvas'); c.width = c.height = Math.ceil(s * dpr); const x = c.getContext('2d'); x.scale(dpr, dpr); return [c, x]; };
+
+  /* пушистая точка: белая, с голубоватой каймой на светлой теме, чтобы была видна на снежном небе */
+  function dotSprite(s, dark) {
+    const [c, x] = sheet(s), r = s / 2, k = x.createRadialGradient(r, r, 0, r, r, r);
+    if (dark) { k.addColorStop(0, 'rgba(255,255,255,.95)'); k.addColorStop(.45, 'rgba(232,242,255,.6)'); k.addColorStop(1, 'rgba(232,242,255,0)'); }
+    else { k.addColorStop(0, 'rgba(255,255,255,1)'); k.addColorStop(.52, 'rgba(255,255,255,.95)'); k.addColorStop(.8, 'rgba(130,170,215,.55)'); k.addColorStop(1, 'rgba(130,170,215,0)'); }
+    x.fillStyle = k; x.fillRect(0, 0, s, s); return c;
+  }
+  /* резная снежинка с шестью лучами */
+  function crystalSprite(s, dark) {
+    const [c, x] = sheet(s); x.translate(s / 2, s / 2); x.lineCap = 'round';
+    const passes = dark ? [[1.5, 'rgba(240,247,255,.95)']] : [[3.2, 'rgba(110,155,205,.6)'], [1.5, '#fff']];
+    for (const [w, col] of passes) {
+      x.lineWidth = w; x.strokeStyle = col;
+      for (let i = 0; i < 6; i++) {
+        x.save(); x.rotate(i * Math.PI / 3); x.beginPath();
+        x.moveTo(0, 0); x.lineTo(0, -s * .46);
+        x.moveTo(0, -s * .2); x.lineTo(s * .12, -s * .31); x.moveTo(0, -s * .2); x.lineTo(-s * .12, -s * .31);
+        x.moveTo(0, -s * .34); x.lineTo(s * .08, -s * .42); x.moveTo(0, -s * .34); x.lineTo(-s * .08, -s * .42);
+        x.stroke(); x.restore();
+      }
+    }
+    return c;
+  }
+  function sprites() {
+    const dark = R.dataset.theme === 'dark';
+    SP = { dots: [5, 8, 12, 17].map(s => ({ s, c: dotSprite(s, dark) })), cry: [16, 22, 28].map(s => ({ s, c: crystalSprite(s, dark) })) };
+    F.forEach(pick);
+  }
+  function pick(p) { const sp = (p.cr ? SP.cry : SP.dots)[p.i]; p.sp = sp.c; p.s = sp.s; }
+  function make(top) {
+    const z = Math.random(), cr = Math.random() < .14;
+    const p = { cr, i: cr ? Math.min(2, (z * 3) | 0) : z < .4 ? 0 : z < .7 ? 1 : z < .9 ? 2 : 3,
+      x: rnd(0, W), y: top ? rnd(-40, -10) : rnd(0, H), z, v: .35 + z * 1.05, w: rnd(0, 6.28), ws: rnd(.006, .018),
+      r: rnd(0, 6.28), rs: rnd(-.02, .02), a: .5 + z * .45 };
+    if (SP) pick(p); return p;
+  }
   function size() {
     W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const n = Math.max(10, Math.min(26, Math.round(W / 60)));
-    while (P.length < n) P.push(mk(false)); P.length = n;
+    const n = Math.max(30, Math.min(80, Math.round(W / 20)));
+    while (F.length < n) F.push(make(false)); F.length = n;
   }
-  function loop() {
-    g.clearRect(0, 0, W, H);
-    const dark = R.dataset.theme === 'dark'; g.fillStyle = dark ? '#f2bfce' : '#e8a0b3';
-    for (const p of P) {
-      p.y += p.v; p.w += p.ws; p.x += Math.sin(p.w) * .5 + .15; p.r += p.rs;
-      if (p.y > H + 20 || p.x > W + 20) Object.assign(p, mk(true));
-      g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.globalAlpha = p.a * (dark ? .75 : 1);
-      g.beginPath(); g.moveTo(0, -p.s);
-      g.bezierCurveTo(p.s * .9, -p.s * .6, p.s * .7, p.s * .6, 0, p.s * .5);
-      g.bezierCurveTo(-p.s * .7, p.s * .6, -p.s * .9, -p.s * .6, 0, -p.s); g.fill(); g.restore();
-    }
+  function loop(t) {
     raf = requestAnimationFrame(loop);
+    const dt = last ? Math.min(3, (t - last) / 16.67) : 1; last = t;
+    const wind = Math.sin(t / 3600) * .45 + Math.sin(t / 1300) * .12;
+    g.clearRect(0, 0, W, H);
+    for (const p of F) {
+      p.y += p.v * dt; p.w += p.ws * dt; p.x += (Math.sin(p.w) * .35 + wind * (.4 + p.z)) * dt; p.r += p.rs * dt;
+      if (p.y > H + 30) { Object.assign(p, make(true)); }
+      else if (p.x > W + 30) p.x = -30; else if (p.x < -30) p.x = W + 30;
+      g.globalAlpha = p.a;
+      if (p.cr) { g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.drawImage(p.sp, -p.s / 2, -p.s / 2, p.s, p.s); g.restore(); }
+      else g.drawImage(p.sp, p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
+    }
+    g.globalAlpha = 1;
   }
-  function run() { cancelAnimationFrame(raf); if (on && !document.hidden) raf = requestAnimationFrame(loop); else g.clearRect(0, 0, W, H); }
-  size(); addEventListener('resize', size); document.addEventListener('visibilitychange', run);
-  const sb = $('#sakuraBtn');
+  function run() { cancelAnimationFrame(raf); last = 0; if (on && !document.hidden) raf = requestAnimationFrame(loop); else g.clearRect(0, 0, W, H); }
+  sprites(); size(); addEventListener('resize', size); document.addEventListener('visibilitychange', run);
+  new MutationObserver(sprites).observe(R, { attributes: true, attributeFilter: ['data-theme'] });
+  const sb = $('#snowBtn');
   if (sb) {
     const sync = () => { sb.setAttribute('aria-pressed', on); };
-    sb.onclick = () => { on = !on; localStorage.setItem('sakura', on ? 'on' : 'off'); sync(); run(); };
+    sb.onclick = () => { on = !on; localStorage.setItem('snow', on ? 'on' : 'off'); sync(); run(); };
     sync();
   }
   run();
