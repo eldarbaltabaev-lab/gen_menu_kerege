@@ -31,7 +31,7 @@
      1. НАСТРОЙКИ ВИДА JPEG
      ===================================================================== */
   const LS_KEY = 'menuJpegStyle';
-  const DEF = { dish: 18, cat: 18, head: 18, dishBold: false, catBold: true, outW: 0, minH: 0, maxH: 0 };
+  const DEF = { dish: 18, cat: 18, head: 18, dishBold: false, catBold: true, outW: 3200, minH: 0, maxH: 0 };
   const SIZES = [
     { n: 'Авто', w: 0, min: 0, max: 0 },
     { n: 'Высота 900–1400', w: 0, min: 900, max: 1400 },
@@ -54,7 +54,7 @@
     S.cat  = clamp(S.cat, 12, 40, DEF.cat);
     S.head = clamp(S.head, 12, 40, DEF.head);
     S.dishBold = !!S.dishBold; S.catBold = !!S.catBold;
-    S.outW = S.outW ? clamp(S.outW, 400, 6000, 0) : 0;
+    S.outW = 3200;                       // ширина картинки всегда 3200 px и никогда не сужается
     S.minH = S.minH ? clamp(S.minH, 200, 8000, 0) : 0;
     S.maxH = S.maxH ? clamp(S.maxH, 200, 8000, 0) : 0;
     if (S.minH && S.maxH && S.minH > S.maxH) S.minH = S.maxH;
@@ -76,16 +76,16 @@
   /* ширина по настройке; высота зажимается в рамки мин/макс: выше макс — картинка уменьшается целиком,
      ниже мин — добавляется фон бланка сверху и снизу */
   function fitCanvas(c) {
-    const tw = S.outW || c.width;
+    const tw = 3200;                                   // ширина фиксирована
     let th = Math.round(c.height * tw / c.width);
-    if (S.maxH && th > S.maxH) th = S.maxH;
-    if (S.minH && th < S.minH) th = S.minH;
+    // максимум по высоте больше НЕ уменьшает картинку (иначе по бокам появлялись поля)
+    if (S.minH && th < S.minH) th = S.minH;            // минимум по высоте: добавляется фон сверху и снизу
     if (c.width === tw && c.height === th) return c;
     const out = document.createElement('canvas'); out.width = tw; out.height = th;
     const g = out.getContext('2d');
     g.fillStyle = '#f7eed8'; g.fillRect(0, 0, tw, th);
     g.imageSmoothingQuality = 'high';
-    const k = Math.min(tw / c.width, th / c.height), dw = c.width * k, dh = c.height * k;
+    const k = tw / c.width, dw = c.width * k, dh = c.height * k;   // масштаб только по ширине
     g.drawImage(c, (tw - dw) / 2, (th - dh) / 2, dw, dh);
     return out;
   }
@@ -101,7 +101,7 @@
         }
       } catch (e) { console.warn('tools:', e); }
       const p = orig.call(this, el, opts);
-      return mine && (S.outW || S.minH || S.maxH) ? p.then(fitCanvas) : p;
+      return mine ? p.then(fitCanvas) : p;
     };
     Object.assign(wrapped, orig);
     window.html2canvas = wrapped;
