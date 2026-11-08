@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<title>gen_menu</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+</head>
+<body>
+<main>
+  <header class="top">
+    <div class="brand">
+      <span class="hanko" aria-hidden="true">献立</span>
+      <div>
+        <h1>Меню</h1>
+        <p class="sub">Загрузите меню (.xlsx) и работайте с ним.</p>
+      </div>
+    </div>
+    <nav class="dock">
+      <button class="btn alt" id="sakuraBtn" aria-pressed="true" title="Лепестки сакуры"><i class="jk">桜</i>Сакура</button>
+      <button class="btn alt" id="themeToggle"><i class="jk ink">月</i>Тёмная</button>
+      <button class="btn alt" id="updateBtn"><i class="jk">新</i>Что нового?</button>
+      <button class="btn alt" id="helpBtn"><i class="jk ink">助</i>Справка</button>
+      <button class="btn alt" id="dictBtn"><i class="jk ink">辞</i>Словарь</button>
+    </nav>
+  </header>
+  <div class="waves" aria-hidden="true"></div>
+
+  <!-- Модальное окно Словаря -->
+  <div id="dictModal" class="modal-overlay hide">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="jk ink">辞</i>Словарь переводов</h2>
+        <button class="modal-close" id="closeDict">&times;</button>
+      </div>
+      <p>Все блюда, которые вы переводили или редактировали. Можете изменить перевод прямо здесь — он сохранится навсегда.</p>
+        <div class="dict-search-wrapper">
+          <span class="dict-search-icon">🔍</span>
+          <input type="text" id="dictSearch" placeholder="Поиск по русскому, казахскому или английскому..." autocomplete="off">
+        </div>
+      <div class="modal-body">
+        <table class="dict-table">
+          <thead>
+            <tr>
+              <th>Русский</th>
+              <th>Казахский</th>
+              <th>Английский</th>
+            </tr>
+          </thead>
+          <tbody id="dictBody">
+            <!-- Сюда будут загружаться данные -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Модальное окно Справки -->
+  <div id="helpModal" class="modal-overlay hide">
+    <div class="modal-content nw hp">
+      <div class="nw-hero">
+        <span class="hanko" aria-hidden="true">案内</span>
+        <div>
+          <h2>Справка</h2>
+          <p class="nw-ver">Как пользоваться меню</p>
+        </div>
+        <button class="modal-close" id="closeHelp" aria-label="Закрыть">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="nw-sec">Быстрый старт</div>
+        <div class="nw-list">
+      <article class="nw-item is-new" style="--i:0"><span class="nw-k" aria-hidden="true">一</span><div><h3>Загрузите файл</h3><p>Перетащите Excel-файл недельного меню (.xlsx или .xlsm) в зону загрузки или нажмите на неё и выберите файл.</p></div></article>
+      <article class="nw-item is-new" style="--i:1"><span class="nw-k" aria-hidden="true">二</span><div><h3>Выберите неделю</h3><p>В списке «Неделя» выберите нужную. Появятся карточки дней. Листайте их кнопками ❮ ❯ или клавишами ← → на клавиатуре.</p></div></article>
+      <article class="nw-item is-new" style="--i:2"><span class="nw-k" aria-hidden="true">三</span><div><h3>Проверьте и поправьте</h3><p>Любое название можно изменить прямо в карточке: сверху русский, ниже казахский и английский. Галочка слева значит «блюдо попадёт в файл». Без галочки блюда в файле не будет.</p></div></article>
+      <article class="nw-item is-new" style="--i:3"><span class="nw-k" aria-hidden="true">四</span><div><h3>Переведите (по желанию)</h3><p>Кнопки «Перевести всё»: через Google или через ИИ. Для ИИ нужен API-ключ, его вводят в «Настроить ИИ». Блюда, которые уже переводились, берутся из словаря мгновенно.</p></div></article>
+      <article class="nw-item is-new" style="--i:4"><span class="nw-k" aria-hidden="true">五</span><div><h3>Скачайте результат</h3><p>Всю неделю: «Скачать неделю» (.docx или .jpeg, архивом ZIP). Один день или один приём пищи: кнопки на карточке дня (📄 Word, 🖼️ картинка).</p></div></article>
+        </div>
+
+        <div class="nw-sec">Что ещё умеет сайт</div>
+        <div class="hp-grid">
+      <div class="hp-card"><h4><i class="jk">辞</i>Словарь</h4><p>Кнопка «Словарь» в шапке: все переводы, поиск по трём языкам и правка прямо в таблице. Исправленный перевод запоминается.</p></div>
+      <div class="hp-card"><h4><i class="jk ink">寸</i>Вид JPEG</h4><p>Блок внизу страницы: размер шрифтов, ширина, мин. и макс. высота картинки и предпросмотр. Удобно, чтобы меню влезало в экран телевизора.</p></div>
+      <div class="hp-card"><h4><i class="jk">出</i>День и приём пищи</h4><p>На карточке дня: кнопки 📄 и 🖼️ в разделителях (Завтрак, Обед, Ужин) и «День .docx / .jpeg» внизу. За день файлы собираются в ZIP.</p></div>
+      <div class="hp-card"><h4><i class="jk ink">日</i>Тема</h4><p>Кнопка «Светлая / Тёмная» переключает оформление. Выбор запоминается.</p></div>
+      <div class="hp-card"><h4><i class="jk">桜</i>Сакура</h4><p>Лепестки на фоне. Если мешают, отключите кнопкой «Сакура», выбор запоминается.</p></div>
+      <div class="hp-card"><h4><i class="jk ink">矢</i>Стрелки ← →</h4><p>Листают дни, когда вы не печатаете в поле и не открыто окно.</p></div>
+        </div>
+
+        <div class="nw-sec">Частые вопросы</div>
+        <div class="hp-faq">
+      <details><summary>Куда делись мои переводы?</summary><p>Переводы хранятся в памяти браузера на этом устройстве. Если очистить данные сайта или открыть меню на другом компьютере, переводов там не будет. Одно и то же меню на другом устройстве придётся переводить заново.</p></details>
+      <details><summary>Блюдо не попало в файл</summary><p>Проверьте галочку слева от блюда. В файл идут только отмеченные блюда. Если в приёме пищи нет ни одной галочки, для него файл не создаётся, и сайт напишет «Нет отмеченных блюд».</p></details>
+      <details><summary>ИИ-перевод не работает</summary><p>Проверьте, что введён API-ключ («Настроить ИИ»). Если основная модель перегружена, сайт сам пробует резервные. Если ничего не помогает, воспользуйтесь переводом через Google.</p></details>
+      <details><summary>JPEG получается слишком высоким</summary><p>В блоке «Вид JPEG» задайте максимальную высоту. Если блюд много, картинка уменьшится целиком, и она поместится на экран.</p></details>
+      <details><summary>Файл не загружается</summary><p>Подойдёт Excel-файл формата .xlsx или .xlsm в привычной структуре недельного меню. Файлы других форматов (например, .xls или .csv) сайт не принимает.</p></details>
+      <details><summary>Что уходит в интернет?</summary><p>Только названия блюд, когда вы нажимаете кнопки перевода (Google или ИИ). Сами файлы меню, галочки и правки остаются в вашем браузере.</p></details>
+        </div>
+
+        <div class="nw-sec">Есть вопросы или идеи?</div>
+        <form class="hp-form" id="helpForm" autocomplete="off">
+          <input type="text" id="helpName" placeholder="Ваше имя (по желанию)" maxlength="60">
+          <textarea id="helpText" placeholder="Напишите вопрос или идею. Чем подробнее, тем быстрее смогу помочь." maxlength="1500" required></textarea>
+          <div class="hp-send">
+            <button type="button" class="btn" id="helpWa"><i class="jk">話</i>Отправить в WhatsApp</button>
+            <button type="button" class="btn alt" id="helpMail"><i class="jk ink">文</i>Отправить на почту</button>
+          </div>
+          <p class="hp-hint" id="helpHint">Откроется WhatsApp или почта с готовым текстом, останется нажать «Отправить».</p>
+        </form>
+        <p class="hp-hint">Идеи и портфолио: <a target="_blank" rel="noopener noreferrer" class="prtf" href="https://eldarbaltabaev-lab.github.io/E.Baltabayev/">Перейти &rarr;</a></p>
+      </div>
+    </div>
+  </div>
+
+<div class="card">
+  <label class="lbl" for="file">1. Файл недельного меню</label>
+  <div id="drop-zone" class="drop-zone">
+    <input id="file" type="file" accept=".xlsx,.xlsm">
+    <div class="drop-zone-prompt">
+      <span class="enso">📥</span>
+      Перетащите файл сюда <br> или нажмите, чтобы выбрать
+    </div>
+  </div>
+  <div id="msg" role="status" aria-live="polite"></div>
+</div>
+
+<div id="step2" class="card hide">
+  <label class="lbl" for="weekSel">2. Неделя</label>
+  <select id="weekSel"></select>
+
+  <!-- КАРУСЕЛЬ -->
+  <div class="carousel-wrapper">
+    <button class="carousel-btn" id="prevWeekDay" title="Назад">❮</button>
+    <div id="weekContainer" class="week-container"></div>
+    <button class="carousel-btn" id="nextWeekDay" title="Вперед">❯</button>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="weekDocx">📄 Скачать неделю (.docx ZIP)</button>
+    <button class="btn alt" id="weekJpeg">🖼️ Скачать неделю (.jpeg ZIP)</button>
+    <button class="btn alt" id="translateBtn">🌐 Перевести всё (Google)</button>
+    <button class="btn alt" id="translateAiBtn">🤖 Перевести всё (ИИ)</button>
+    <button class="btn" id="aiKeyBtn">⚙️ Настроить ИИ (API-ключ)</button>
+  </div>
+</div>
+
+<div id="jpegContainer"></div>
+<!-- Модальное окно Что нового -->
+<div id="updateModal" class="modal-overlay hide">
+  <div class="modal-content nw">
+    <div class="nw-hero">
+      <span class="hanko" aria-hidden="true">新着</span>
+      <div>
+        <h2>Что нового?</h2>
+        <p class="nw-ver">Версия 4.0 · Ноябрь 2026</p>
+      </div>
+      <button class="modal-close" id="closeUpdate" aria-label="Закрыть">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="nw-sec">Новое в этой версии</div>
+      <div class="nw-list">
+      <article class="nw-item is-new" style="--i:0">
+        <span class="nw-k" aria-hidden="true">和</span>
+        <div><h3>Новый облик «Васи и тушь»<span class="nw-tag">Новое</span></h3><p>Бумага васи, красная печать-ханко, волны сэйгайха, светлая и тёмная темы. Карточки дней раскрываются по очереди, как раздвижные перегородки сёдзи.</p></div>
+      </article>
+      <article class="nw-item is-new" style="--i:1">
+        <span class="nw-k" aria-hidden="true">朝</span>
+        <div><h3>Яркие разделители приёмов пищи<span class="nw-tag">Новое</span></h3><p>Завтрак, Обед и Ужин теперь крупные цветные полосы со своим кандзи: 朝 утро, 昼 день, 夕 вечер.</p></div>
+      </article>
+      <article class="nw-item is-new" style="--i:2">
+        <span class="nw-k" aria-hidden="true">出</span>
+        <div><h3>Скачивание одного дня или приёма пищи<span class="nw-tag">Новое</span></h3><p>Кнопки 📄 и 🖼️ прямо в разделителях и «День .docx / .jpeg» внизу карточки. За день файлы упаковываются в один ZIP. Берутся только отмеченные блюда.</p></div>
+      </article>
+      <article class="nw-item is-new" style="--i:3">
+        <span class="nw-k" aria-hidden="true">寸</span>
+        <div><h3>Рамки высоты для JPEG<span class="nw-tag">Новое</span></h3><p>В «Вид JPEG» можно задать ширину, минимальную и максимальную высоту картинки, чтобы меню помещалось на экран телевизора. Результат виден в предпросмотре.</p></div>
+      </article>
+      <article class="nw-item is-new" style="--i:4">
+        <span class="nw-k" aria-hidden="true">桜</span>
+        <div><h3>Сакура<span class="nw-tag">Новое</span></h3><p>На фоне тихо падают лепестки. Кнопка «🌸 Сакура» выключает их, выбор запоминается. Если в системе включено «уменьшить анимацию», лепестков не будет.</p></div>
+      </article>
+      <article class="nw-item is-new" style="--i:5">
+        <span class="nw-k" aria-hidden="true">技</span>
+        <div><h3>Мелочи для удобства<span class="nw-tag">Новое</span></h3><p>Сообщения всплывают сверху и видны с любого места страницы. Стрелки ← → листают дни. Галочка «штампуется», а кнопки отвечают волной туши.</p></div>
+      </article>
+      </div>
+      <div class="nw-sec">Раньше</div>
+      <div class="nw-list">
+      <article class="nw-item" style="--i:6">
+        <span class="nw-k" aria-hidden="true">訳</span>
+        <div><h3>Умный переводчик с автопереключением</h3><p>Если основная модель ИИ перегружена или выдаёт ошибку, скрипт сам переключится на резервные версии, и перевод не остановится.</p></div>
+      </article>
+      <article class="nw-item" style="--i:7">
+        <span class="nw-k" aria-hidden="true">辞</span>
+        <div><h3>Словарь переводов и поиск</h3><p>Все переведённые блюда сохраняются в браузере и переводятся мгновенно, без затрат лимитов ИИ. В словаре есть поиск по трём языкам и прямое редактирование.</p></div>
+      </article>
+      <article class="nw-item" style="--i:8">
+        <span class="nw-k" aria-hidden="true">絵</span>
+        <div><h3>Экспорт JPEG по бланку</h3><p>Логотипы по краям, синие рамки и группировка по категориям (Суп, Салат, Блюда и т.д.). Размер шрифтов настраивается в «Вид JPEG».</p></div>
+      </article>
+      </div>
+      <div class="nw-foot">ありがとう · Спасибо, что пользуетесь</div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- ВАЖНО: Сначала script.js, затем script-translate.js -->
+<script src="script.js"></script>
+<script src="translater.js"></script>
+<script src="tools.js"></script>
+<script src="ui.js"></script>
+<script src="daydl.js"></script>
+<script src="help.js"></script>
+</body>
+</html>
