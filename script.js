@@ -366,10 +366,10 @@ let html = `
   html += `<table style="width: 100%; border-collapse: collapse; border: 2px solid #2b5782; background: rgba(255,255,255,0.7);">`;
   html += `
     <tr style="background: #e5d8c1; border-bottom: 2px solid #2b5782;">
-      <th style="border: 1px solid #2b5782; padding: 12px; width: 20%;"></th>
-      <th style="border: 1px solid #2b5782; padding: 12px; width: 26%; font-size: 18px;">${meal.kk}</th>
-      <th style="border: 1px solid #2b5782; padding: 12px; width: 26%; font-size: 18px;">${meal.ru}</th>
-      <th style="border: 1px solid #2b5782; padding: 12px; width: 28%; font-size: 18px;">${meal.en}</th>
+      <th style="border: 1px solid #2b5782; padding: 8px; width: 20%;"></th>
+      <th style="border: 1px solid #2b5782; padding: 8px; width: 26%; font-size: 18px;">${meal.kk}</th>
+      <th style="border: 1px solid #2b5782; padding: 8px; width: 26%; font-size: 18px;">${meal.ru}</th>
+      <th style="border: 1px solid #2b5782; padding: 8px; width: 28%; font-size: 18px;">${meal.en}</th>
     </tr>
   `;
 
