@@ -290,7 +290,7 @@ function getCategoryGroup(mealKey, label, rawCat) {
     if (l.includes("йогурт") || l.includes("выпечка") || l.includes("тоқаш")) return "Бәліштер / Выпечка / Baking & Dairy";
   } else {
     // ПРАВИЛА ДЛЯ ОБЕДА И УЖИНА
-    //if (l.includes("салатные овощи")) return null; // Игнорируем
+    if (l.includes("салатные овощи")) return null; // Игнорируем
     if (l.includes("суп")) return "Сорпа / Суп / Soup";
     if (l.includes("салат")) return "Салат / Salat";
     if (l.includes("блюдо")) return "Тағам / Блюдо / Dish";
