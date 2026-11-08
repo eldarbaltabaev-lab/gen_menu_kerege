@@ -73,7 +73,28 @@
       td.style.fontWeight = S.dishBold ? 'bold' : 'normal';
     });
   }
-  /* ширина по настройке; высота зажимается в рамки мин/макс: выше макс — картинка уменьшается целиком,
+  /* «максимум по высоте»: вместо уменьшения картинки (из-за этого были поля по бокам)
+     уменьшаем саму таблицу: сначала вертикальные отступы в ячейках, потом (если не хватило) шрифт не более чем на 4 px.
+     Ширина картинки при этом остаётся 3200 px. */
+  function fitHeight(el) {
+    if (!S.maxH) return;
+    const scale = 3200 / (el.offsetWidth || 1600);      // во сколько раз картинка больше блока на странице
+    const limit = S.maxH / scale;                        // допустимая высота блока в px страницы
+    if (el.offsetHeight <= limit) return;
+    const cells = $$('th, td', el);
+    if (!cells.length) return;
+    const setPad = (p) => cells.forEach((c) => { c.style.paddingTop = p + 'px'; c.style.paddingBottom = p + 'px'; });
+    let pad = Math.round(parseFloat(getComputedStyle(cells[0]).paddingTop)) || 12;
+    while (el.offsetHeight > limit && pad > 2) { pad--; setPad(pad); }
+    let cut = 0;
+    while (el.offsetHeight > limit && cut < 4) {
+      cut++;
+      $$('th', el).forEach((th) => { if (th.textContent.trim()) th.style.fontSize = Math.max(10, S.head - cut) + 'px'; });
+      $$('td[rowspan]', el).forEach((td) => { td.style.fontSize = Math.max(10, S.cat - cut) + 'px'; });
+      $$('td:not([rowspan])', el).forEach((td) => { td.style.fontSize = Math.max(10, S.dish - cut) + 'px'; });
+    }
+  }
+  /* ширина всегда 3200; минимум по высоте добавляет фон сверху и снизу: выше макс — картинка уменьшается целиком,
      ниже мин — добавляется фон бланка сверху и снизу */
   function fitCanvas(c) {
     const tw = 3200;                                   // ширина фиксирована
@@ -97,6 +118,7 @@
       try {
         if (mine) {
           applyStyle(el);
+          fitHeight(el);
           if (S.outW) opts = Object.assign({}, opts, { scale: S.outW / (el.offsetWidth || 1400) });
         }
       } catch (e) { console.warn('tools:', e); }
@@ -454,6 +476,7 @@
     } catch (e) { /* ignore */ }
     const inPic = picked.length - missing.length;
     let html = `<div class="tl-meta">${img.naturalWidth}×${img.naturalHeight} px · в картинке ${inPic} из ${picked.length} отмеченных блюд</div>`;
+    if (S.maxH && img.naturalHeight > S.maxH) html += `<div class="tl-warn">⚠️ Не удалось уложиться в ${S.maxH} px по высоте: сжимать таблицу дальше нельзя без потери читаемости. Увеличьте максимум или уберите часть блюд.</div>`;
     if (missing.length) {
       const names = missing.map((it) => {
         let ru = ''; try { ru = texts(dayObj, it).ru; } catch (e) { /* ignore */ }
