@@ -90,39 +90,54 @@ function parseWb(wb){
 const get=(w,lang,r,c)=>clean(((w[lang]||w.ru)[r]||[])[c]);
 
 // Глобальная память переводов (сохраняется в браузере)
+// Сравнение без учёта регистра и лишних пробелов, «ё» = «е»: «фрукты» найдёт «Фрукты».
+const normKey = s => String(s == null ? "" : s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
 window.TM = {
   data: JSON.parse(localStorage.getItem('translation_memory') || '{}'),
-  get: function(ruText) { return this.data[ruText] || {}; },
+  _idx: null,
+  get: function(ruText) {
+    if (this.data[ruText]) return this.data[ruText];
+    const n = normKey(ruText);
+    if (!n) return {};
+    if (!this._idx) { this._idx = {}; for (const k in this.data) { const nk = normKey(k); if (!this._idx[nk]) this._idx[nk] = k; } }
+    const real = this._idx[n];
+    return (real && this.data[real]) || {};
+  },
   set: function(ruText, lang, text) {
     if (!ruText || !text) return;
-    if (!this.data[ruText]) this.data[ruText] = {};
+    if (!this.data[ruText]) { this.data[ruText] = {}; this._idx = null; }
     this.data[ruText][lang] = text;
     localStorage.setItem('translation_memory', JSON.stringify(this.data));
   }
 };
 
-function texts(d,it){
-  const ov=(lang)=>{
-    // Получаем оригинальный русский текст
-    const ruText = it.isCustom ? (it.ru||"") : get(d.w, "ru", it.r, d.col);
-    
-    // Ключ теперь привязан ТОЛЬКО к русскому тексту, без привязки к номеру дня!
-    const k = lang + "|" + ruText;
-    
-    // 1. Проверяем ручные правки
-    if(window.overrides[k]!==undefined) return window.overrides[k];
+// Русское название с учётом вашей правки в карточке (правка хранится под ключом «ru|название из Excel»)
+function effectiveRu(origRu){
+  const o = window.overrides["ru|" + origRu];
+  return clean(o !== undefined ? o : origRu);
+}
 
-    // 2. Ищем в глобальной памяти
-    if (lang !== 'ru' && ruText && ruText.trim() !== "") {
-        const mem = window.TM.get(ruText.trim());
-        if (mem[lang]) return mem[lang];
-    }
-    
-    // 3. Если ничего нет, берем из Excel
+function texts(d,it){
+  // Оригинальный русский текст из Excel и название с учётом вашей правки
+  const origRu = it.isCustom ? (it.ru||"") : get(d.w, "ru", it.r, d.col);
+  const ru = effectiveRu(origRu);
+  // Название исправлено вручную: переводы из Excel относились к старому названию и уже не подходят
+  const renamed = ru !== clean(origRu);
+
+  const ov=(lang)=>{
+    if(lang==="ru") return ru;
+    // 1. Ручные правки перевода (привязаны к русскому названию с учётом правки)
+    const k = lang + "|" + ru;
+    if(window.overrides[k]!==undefined) return window.overrides[k];
+    // 2. Глобальная память переводов (словарь)
+    if (ru) { const mem = window.TM.get(ru); if (mem[lang]) return mem[lang]; }
+    // 3. Название исправлено, а в словаре его нет: пусто, перевод пойдёт вместе с остальными
+    if (renamed) return "";
+    // 4. Иначе то, что написано в Excel
     if(it.isCustom) return it[lang]||"";
     return get(d.w,lang,it.r,d.col);
   };
-  
+
   const t={ru:ov("ru"),kk:ov("kk"),en:ov("en")};
   t.warn=!t.ru||!t.kk||!t.en||t.kk===t.ru||/[А-Яа-яЁё]/.test(t.en)||!/[А-Яа-яЁё]/.test(t.ru);
   return t;
@@ -133,12 +148,41 @@ function say(t,bad){const m=$("#msg");m.textContent=t;m.style.color=bad?"var(--w
 window.say = say; window.texts = texts; window.get = get; window.selKey = selKey;
 window.ensureSel = ensureSel; window.fmt = fmt; window.wday = wday;
 
+// Подсветка поля, где перевода нет или он совпадает с русским
+function markDup(e,lang,val,ruVal){ e.classList.toggle("dup", lang!=="ru" && (val===ruVal || !val)); }
+
+// Обновляет все карточки с этим блюдом (по названию из Excel), не трогая поле, в котором вы печатаете
+const _refreshTimers={};
+function scheduleRefresh(origRu){ clearTimeout(_refreshTimers[origRu]); _refreshTimers[origRu]=setTimeout(()=>refreshSameDish(origRu,false),350); }
+function refreshSameDish(origRu,announce){
+  document.querySelectorAll("#weekContainer .item").forEach(row=>{
+    if(row.dataset.orig!==origRu||!row._ctx)return;
+    const t=texts(row._ctx.dayObj,row._ctx.it);
+    ["ru","kk","en"].forEach(lang=>{
+      const e=row._inp[lang]; if(!e)return;
+      if(document.activeElement!==e) e.value=t[lang]||"";
+      markDup(e,lang,t[lang],t.ru);
+    });
+  });
+  if(!announce)return;
+  const eff=effectiveRu(origRu);
+  if(eff===clean(origRu)){say("Название как в файле: «"+eff+"».");return;}
+  if(!eff){say("Название пустое.",true);return;}
+  const mem=window.TM.get(eff);
+  if(mem.kk&&mem.en)say("«"+eff+"»: перевод найден в словаре.");
+  else if(mem.kk||mem.en)say("«"+eff+"»: в словаре есть только "+(mem.kk?"казахский":"английский")+". Остальное переведётся кнопкой «Google» или «ИИ».");
+  else say("«"+eff+"»: в словаре нет. Нажмите «Google» или «ИИ», блюдо переведётся вместе с остальными.");
+}
+
 function createItemRow(dayObj,day,mealKey,it){
   const t=texts(dayObj,it);
   const sk=selKey(day,mealKey);
+  const origRu = it.isCustom ? (it.ru||"") : get(dayObj.w, "ru", it.r, dayObj.col);
 
   const row=document.createElement("label");
   row.className="item";
+  row.dataset.orig=origRu;
+  row._ctx={dayObj,it}; row._inp={};
 
   const cb=document.createElement("input");
   cb.type="checkbox";
@@ -151,31 +195,31 @@ function createItemRow(dayObj,day,mealKey,it){
   const addEdit=(cls,lang,val)=>{
     const e=document.createElement("input");
     e.type="text";e.className=cls;e.value=val||"";e.placeholder="—";
-    
-    const isDup = (lang !== 'ru') && (val === t.ru || !val);
-    if (isDup) e.classList.add('dup');
+    markDup(e,lang,val,t.ru);
 
     e.onclick=ev=>ev.stopPropagation();
     e.oninput=()=>{
-      // 1. Получаем оригинальный русский текст, чтобы привязать перевод к нему
-      const origRu = it.isCustom ? (it.ru||"") : get(dayObj.w, "ru", it.r, dayObj.col);
-      
-      // 2. Ключ теперь: язык + русский текст (без привязки к дню/колонке!)
-      const key = lang + "|" + origRu;
-      
-      const orig=it.isCustom?(it[lang]||""):get(dayObj.w,lang,it.r,dayObj.col);
       const v=e.value.trim();
-      
-      if (lang !== 'ru' && (v === t.ru || v === "")) e.classList.add('dup');
-      else e.classList.remove('dup');
-    
-      // 3. Сохраняем в оперативную память
-      if(v===orig) delete window.overrides[key];
+      // Название с учётом правки: к нему привязаны переводы (само название хранится под исходным из Excel)
+      const eff=effectiveRu(origRu);
+      const orig=it.isCustom?(it[lang]||""):get(dayObj.w,lang,it.r,dayObj.col);
+      // У переименованного блюда сравнивать с Excel нечего: там перевод старого названия
+      const base=(lang==="ru"||eff===clean(origRu))?orig:"";
+      const key=lang==="ru"?"ru|"+origRu:lang+"|"+eff;
+
+      if(v===base) delete window.overrides[key];
       else window.overrides[key]=v;
-    
-      // 4. СОХРАНЯЕМ В БРАУЗЕР, чтобы правки не слетали после F5
+
+      // Сохраняем в браузер, чтобы правки не слетали после F5
       localStorage.setItem('manual_overrides', JSON.stringify(window.overrides));
+
+      if(lang!=="ru") markDup(e,lang,v,eff);
+      scheduleRefresh(origRu);
     };
+    // Закончили править название: сразу ищем его в словаре и сообщаем результат
+    if(lang==="ru") e.onchange=()=>refreshSameDish(origRu,true);
+
+    row._inp[lang]=e;
     body.appendChild(e);
   };
 
@@ -290,7 +334,7 @@ function getCategoryGroup(mealKey, label, rawCat) {
     if (l.includes("йогурт") || l.includes("выпечка") || l.includes("тоқаш")) return "Бәліштер / Выпечка / Baking & Dairy";
   } else {
     // ПРАВИЛА ДЛЯ ОБЕДА И УЖИНА
-    if (l.includes("салатные овощи")) return null; // Игнорируем
+    //if (l.includes("салатные овощи")) return null; // Игнорируем
     if (l.includes("суп")) return "Сорпа / Суп / Soup";
     if (l.includes("салат")) return "Салат / Salat";
     if (l.includes("блюдо")) return "Тағам / Блюдо / Dish";
@@ -313,7 +357,7 @@ async function buildJpegByMeal(dayObj, day, mealKey) {
   
   // Настройки контейнера
   container.style.width = '1600px';
-  container.style.padding = '1px 1px';
+  container.style.padding = '20px 20px';
   container.style.backgroundColor = '#f7eed8'; 
   container.style.fontFamily = "'Times New Roman', serif";
   container.style.color = '#000000';
@@ -366,10 +410,10 @@ let html = `
   html += `<table style="width: 100%; border-collapse: collapse; border: 2px solid #2b5782; background: rgba(255,255,255,0.7);">`;
   html += `
     <tr style="background: #e5d8c1; border-bottom: 2px solid #2b5782;">
-      <th style="border: 1px solid #2b5782; padding: 8px; width: 20%;"></th>
-      <th style="border: 1px solid #2b5782; padding: 8px; width: 26%; font-size: 18px;">${meal.kk}</th>
-      <th style="border: 1px solid #2b5782; padding: 8px; width: 26%; font-size: 18px;">${meal.ru}</th>
-      <th style="border: 1px solid #2b5782; padding: 8px; width: 28%; font-size: 18px;">${meal.en}</th>
+      <th style="border: 1px solid #2b5782; padding: 12px; width: 20%;"></th>
+      <th style="border: 1px solid #2b5782; padding: 12px; width: 26%; font-size: 18px;">${meal.kk}</th>
+      <th style="border: 1px solid #2b5782; padding: 12px; width: 26%; font-size: 18px;">${meal.ru}</th>
+      <th style="border: 1px solid #2b5782; padding: 12px; width: 28%; font-size: 18px;">${meal.en}</th>
     </tr>
   `;
 
@@ -383,9 +427,9 @@ let html = `
         </td>`;
       }
       html += `
-        <td style="border: 1px solid #2b5782; padding: 8px; text-align: center; font-size: 18px;">${t.kk || "—"}</td>
-        <td style="border: 1px solid #2b5782; padding: 8px; text-align: center; font-size: 18px;">${t.ru || "—"}</td>
-        <td style="border: 1px solid #2b5782; padding: 8px; text-align: center; font-size: 18px;">${t.en || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.kk || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.ru || "—"}</td>
+        <td style="border: 1px solid #2b5782; padding: 12px; text-align: center; font-size: 18px;">${t.en || "—"}</td>
       </tr>`;
     });
   }
