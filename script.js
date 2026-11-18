@@ -111,16 +111,20 @@ window.TM = {
   }
 };
 
-// Русское название с учётом вашей правки в карточке (правка хранится под ключом «ru|название из Excel»)
-function effectiveRu(origRu){
-  const o = window.overrides["ru|" + origRu];
+// Исправление названия блюда действует ТОЛЬКО в той карточке, где вы его сделали:
+// ключ привязан к неделе, строке таблицы и дню, на другие дни и недели правка не распространяется.
+// (Переводы из словаря остаются общими: их ищут по русскому названию.)
+const ruKey = (d,it) => "rn@" + (d.w && d.w.num) + ":" + (it.isCustom ? "c" + it.key : it.r) + ":" + d.col;
+// Русское название с учётом вашей правки в этой карточке
+function effectiveRu(d,it,origRu){
+  const o = window.overrides[ruKey(d,it)];
   return clean(o !== undefined ? o : origRu);
 }
 
 function texts(d,it){
   // Оригинальный русский текст из Excel и название с учётом вашей правки
   const origRu = it.isCustom ? (it.ru||"") : get(d.w, "ru", it.r, d.col);
-  const ru = effectiveRu(origRu);
+  const ru = effectiveRu(d,it,origRu);
   // Название исправлено вручную: переводы из Excel относились к старому названию и уже не подходят
   const renamed = ru !== clean(origRu);
 
@@ -151,10 +155,10 @@ window.ensureSel = ensureSel; window.fmt = fmt; window.wday = wday;
 // Подсветка поля, где перевода нет или он совпадает с русским
 function markDup(e,lang,val,ruVal){ e.classList.toggle("dup", lang!=="ru" && (val===ruVal || !val)); }
 
-// Обновляет все карточки с этим блюдом (по названию из Excel), не трогая поле, в котором вы печатаете
+// Пересчитывает карточки блюда (общие переводы могли измениться), не трогая поле, в котором вы печатаете
 const _refreshTimers={};
 function scheduleRefresh(origRu){ clearTimeout(_refreshTimers[origRu]); _refreshTimers[origRu]=setTimeout(()=>refreshSameDish(origRu,false),350); }
-function refreshSameDish(origRu,announce){
+function refreshSameDish(origRu,announce,thisRow){
   document.querySelectorAll("#weekContainer .item").forEach(row=>{
     if(row.dataset.orig!==origRu||!row._ctx)return;
     const t=texts(row._ctx.dayObj,row._ctx.it);
@@ -164,8 +168,8 @@ function refreshSameDish(origRu,announce){
       markDup(e,lang,t[lang],t.ru);
     });
   });
-  if(!announce)return;
-  const eff=effectiveRu(origRu);
+  if(!announce||!thisRow||!thisRow._ctx)return;
+  const eff=effectiveRu(thisRow._ctx.dayObj,thisRow._ctx.it,origRu);
   if(eff===clean(origRu)){say("Название как в файле: «"+eff+"».");return;}
   if(!eff){say("Название пустое.",true);return;}
   const mem=window.TM.get(eff);
@@ -201,11 +205,11 @@ function createItemRow(dayObj,day,mealKey,it){
     e.oninput=()=>{
       const v=e.value.trim();
       // Название с учётом правки: к нему привязаны переводы (само название хранится под исходным из Excel)
-      const eff=effectiveRu(origRu);
+      const eff=effectiveRu(dayObj,it,origRu);
       const orig=it.isCustom?(it[lang]||""):get(dayObj.w,lang,it.r,dayObj.col);
       // У переименованного блюда сравнивать с Excel нечего: там перевод старого названия
       const base=(lang==="ru"||eff===clean(origRu))?orig:"";
-      const key=lang==="ru"?"ru|"+origRu:lang+"|"+eff;
+      const key=lang==="ru"?ruKey(dayObj,it):lang+"|"+eff;      // название: только эта карточка; перевод: общий по русскому тексту
 
       if(v===base) delete window.overrides[key];
       else window.overrides[key]=v;
@@ -217,7 +221,7 @@ function createItemRow(dayObj,day,mealKey,it){
       scheduleRefresh(origRu);
     };
     // Закончили править название: сразу ищем его в словаре и сообщаем результат
-    if(lang==="ru") e.onchange=()=>refreshSameDish(origRu,true);
+    if(lang==="ru") e.onchange=()=>refreshSameDish(origRu,true,row);
 
     row._inp[lang]=e;
     body.appendChild(e);
