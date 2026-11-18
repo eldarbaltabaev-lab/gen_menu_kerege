@@ -308,6 +308,121 @@ window.addEventListener('click', (e) => {
   if (e.target === helpModal) helpModal.classList.add('hide');
 });
 
+// ===== УДАЛЕНИЕ ИЗ СЛОВАРЯ =====
+// Что удаляется: сохранённые переводы (память переводов) и ваши ручные правки казахского/английского
+// для этих слов. Исправления названий в карточках и сам файл меню не затрагиваются.
+let lastRemoved = null;       // то, что удалили в последний раз (для кнопки «Отменить»)
+let lastRemovedCount = 0;
+
+function persistDict() {
+  safeStorage.set('translation_memory', JSON.stringify(window.TM.data));
+  safeStorage.set('manual_overrides', JSON.stringify(window.overrides));
+}
+
+// list: массив русских слов; null = удалить всё. Возвращает удалённое, чтобы можно было отменить.
+function dictRemove(list) {
+  const set = list ? new Set(list.map(s => s.trim())) : null;
+  const removed = { tm: {}, ov: {} };
+  for (const k of Object.keys(window.TM.data)) {
+    if (!set || set.has(k.trim())) { removed.tm[k] = window.TM.data[k]; delete window.TM.data[k]; }
+  }
+  for (const key of Object.keys(window.overrides || {})) {
+    const p = key.split('|');
+    if ((p.length === 2 || p.length === 3) && (p[0] === 'kk' || p[0] === 'en') && (!set || set.has(p[p.length - 1].trim()))) {
+      removed.ov[key] = window.overrides[key]; delete window.overrides[key];
+    }
+  }
+  window.TM._idx = null;
+  persistDict();
+  return removed;
+}
+
+function dictDeleteWords(list) {
+  const removed = dictRemove(list);
+  const words = new Set([
+    ...Object.keys(removed.tm).map(k => k.trim()),
+    ...Object.keys(removed.ov).map(k => k.split('|').pop().trim())
+  ]);
+  lastRemoved = words.size ? removed : null;
+  lastRemovedCount = words.size;
+  afterDictChange();
+}
+
+function dictUndo() {
+  if (!lastRemoved) return;
+  Object.assign(window.TM.data, lastRemoved.tm);
+  Object.assign(window.overrides, lastRemoved.ov);
+  window.TM._idx = null;
+  persistDict();
+  lastRemoved = null; lastRemovedCount = 0;
+  afterDictChange();
+}
+
+function afterDictChange() {
+  renderDictionary();
+  if (typeof renderWeek === 'function') renderWeek();   // карточки сразу показывают, что осталось
+}
+
+// Панель над таблицей: счётчик, «Очистить словарь», «Отменить». Создаётся скриптом, index.html менять не нужно.
+function ensureDictTools() {
+  if (document.getElementById('dictTools')) return;
+  const style = document.createElement('style');
+  style.textContent = `
+  .dict-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 28px 8px}
+  .dict-count{flex:1;min-width:140px;font-size:13px;font-weight:600;color:var(--mute,#666)}
+  .dict-tools button{padding:8px 14px;border:1px solid var(--line-strong,#bbb);border-radius:4px;background:transparent;
+    font:700 13px inherit;font-family:inherit;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s}
+  .dict-clear{color:var(--warn,#c0392b)}
+  .dict-clear:hover:not(:disabled){background:var(--warn,#c0392b);border-color:var(--warn,#c0392b);color:#fff}
+  .dict-clear:disabled{opacity:.4;cursor:default}
+  .dict-undo{color:var(--ink,#222)}
+  .dict-undo:hover{background:var(--input-bg-hover,#eee);border-color:var(--neon,#1f3a6e)}
+  .dict-del-cell{width:44px;text-align:center}
+  .dict-del{width:34px;height:34px;border:1px solid transparent;border-radius:4px;background:transparent;
+    cursor:pointer;font-size:16px;line-height:1;opacity:.55;transition:opacity .15s,background-color .15s,border-color .15s}
+  .dict-del:hover{opacity:1;background:var(--input-bg-hover,#eee);border-color:var(--warn,#c0392b)}
+  @media (max-width:768px){.dict-tools{margin:0 18px 6px}}`;
+  document.head.appendChild(style);
+
+  const bar = document.createElement('div');
+  bar.id = 'dictTools'; bar.className = 'dict-tools';
+  bar.innerHTML = '<span class="dict-count" id="dictCount"></span>' +
+    '<button type="button" class="dict-undo" id="dictUndo" style="display:none"></button>' +
+    '<button type="button" class="dict-clear" id="dictClear">🗑 Очистить словарь</button>';
+  const sw = document.querySelector('#dictModal .dict-search-wrapper');
+  if (sw) sw.after(bar);
+  else { const mb = document.querySelector('#dictModal .modal-body'); if (mb) mb.before(bar); }
+
+  // четвёртая колонка таблицы (кнопка удаления строки)
+  const headRow = document.querySelector('#dictModal thead tr');
+  if (headRow && headRow.children.length === 3) headRow.appendChild(document.createElement('th'));
+
+  document.getElementById('dictUndo').onclick = dictUndo;
+  document.getElementById('dictClear').onclick = () => {
+    const shown = window.__dictShown || [];
+    if (!shown.length) return;
+    const field = document.getElementById('dictSearch');
+    const q = field ? field.value.trim() : '';
+    const msg = q
+      ? 'Удалить найденные слова (' + shown.length + ') из словаря?\n\nИх переводы и ваши ручные правки переводов будут удалены.'
+      : 'Очистить словарь целиком (слов: ' + window.__dictTotal + ')?\n\nБудут удалены все сохранённые переводы и ваши ручные правки переводов. ' +
+        'Файл меню и исправления названий в карточках не пострадают. Сразу после очистки её можно отменить.';
+    if (!confirm(msg)) return;
+    dictDeleteWords(q ? shown : null);
+  };
+}
+
+function updateDictTools(shown, total, query) {
+  ensureDictTools();
+  window.__dictTotal = total;
+  const cnt = document.getElementById('dictCount'), clr = document.getElementById('dictClear'), und = document.getElementById('dictUndo');
+  cnt.textContent = query ? 'Найдено: ' + shown + ' из ' + total : 'Слов в словаре: ' + total;
+  clr.textContent = query ? '🗑 Удалить найденные (' + shown + ')' : '🗑 Очистить словарь';
+  clr.disabled = shown === 0;
+  und.style.display = lastRemoved ? '' : 'none';
+  if (lastRemoved) und.textContent = '↶ Отменить удаление (' + lastRemovedCount + ')';
+}
+
 function renderDictionary() {
   const tbody = document.getElementById('dictBody');
   tbody.innerHTML = '';
@@ -361,13 +476,16 @@ function renderDictionary() {
            data.kk.toLowerCase().includes(query) || 
            data.en.toLowerCase().includes(query);
   }).sort((a,b) => a.localeCompare(b));
+  const totalWords = Object.keys(combinedDict).filter(r => combinedDict[r].kk !== '' || combinedDict[r].en !== '').length;
+  window.__dictShown = validWords;
+  updateDictTools(validWords.length, totalWords, query);
   
   // Проверка на пустоту
   if (validWords.length === 0) {
     if (query) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 20px; color: #6b7280;">По запросу «${query}» ничего не найдено.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #6b7280;">По запросу «${query}» ничего не найдено.</td></tr>`;
     } else {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">Словарь пока пуст. Переведите меню.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Словарь пока пуст. Переведите меню.</td></tr>';
     }
     return;
   }
@@ -419,7 +537,17 @@ function renderDictionary() {
     };
     tdEn.appendChild(inEn);
 
-    tr.append(tdRu, tdKk, tdEn);
+    // Удаление строки (можно отменить кнопкой «Отменить удаление» над таблицей)
+    const tdDel = document.createElement('td');
+    tdDel.className = 'dict-del-cell';
+    const btnDel = document.createElement('button');
+    btnDel.type = 'button'; btnDel.className = 'dict-del'; btnDel.textContent = '🗑';
+    btnDel.title = 'Удалить из словаря';
+    btnDel.setAttribute('aria-label', 'Удалить «' + ru + '» из словаря');
+    btnDel.onclick = () => dictDeleteWords([ru]);
+    tdDel.appendChild(btnDel);
+
+    tr.append(tdRu, tdKk, tdEn, tdDel);
     tbody.appendChild(tr);
   });
 }
