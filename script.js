@@ -40,12 +40,38 @@ function detectLang(rows){
   }
   return la>cy+kz?"en":(kz>=5&&kz>cy*0.5?"kk":"ru");
 }
+// Строка с датами недели (не меньше 5 дат в колонках C–I) или -1
+function findDateRow(rows){
+  for(let r=0;r<30;r++){
+    const c=[2,3,4,5,6,7,8].filter(i=>toSerial((rows[r]||[])[i])!=null);
+    if(c.length>=5)return r;
+  }
+  return -1;
+}
+// Номер недели из заголовка внутри листа: «2 НЕДЕЛЯ», «2-АПТА», «WEEK 2»
+function weekFromTitle(rows){
+  for(let r=0;r<Math.min(rows.length,25);r++){
+    for(let c=0;c<4;c++){
+      const v=clean((rows[r]||[])[c]);if(!v)continue;
+      const m=v.match(/(\d+)\s*[-–—]?\s*(?:НЕДЕЛ|АПТА|WEEK)/i)||v.match(/(?:НЕДЕЛЯ|WEEK|АПТА)\s*[№#:-]?\s*(\d+)/i);
+      if(m)return m[1];
+    }
+  }
+  return null;
+}
 function parseWb(wb){
-  const g={};
+  const g={},auto={};
   for(const n of wb.SheetNames){
-    const m=n.match(/\d+/);if(!m)continue;
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:true,defval:""});
-    const lang=detectLang(rows),w=(g[m[0]]=g[m[0]]||{num:+m[0],names:{}});
+    // Номер недели: 1) цифра в названии листа («1 нед рус»); 2) если её нет (листы «рус», «каз», «англ»),
+    // то из заголовка внутри листа; 3) иначе по порядку листов. Лист без таблицы дат пропускаем.
+    let key=(n.match(/\d+/)||[])[0];
+    const lang=detectLang(rows);
+    if(!key){
+      if(findDateRow(rows)<0)continue;
+      key=weekFromTitle(rows)||String(auto[lang]=(auto[lang]||0)+1);
+    }
+    const w=(g[key]=g[key]||{num:+key,names:{}});
     if(!w[lang]){w[lang]=rows;w.names[lang]=n}
   }
   const out=[];
